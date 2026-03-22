@@ -10,7 +10,7 @@ import SettingsPage from './pages/SettingsPage';
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/sweatybeasts">
       <Routes>
         <Route element={<Layout />}>
           <Route path="/" element={<Dashboard />} />
