@@ -1,11 +1,12 @@
 const CACHE_NAME = 'sweaty-beasts-v1';
+const BASE = '/sweatybeasts';
 const SHELL_ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/icon.svg',
-  '/icon-maskable.svg',
-  '/favicon.svg',
+  BASE + '/',
+  BASE + '/index.html',
+  BASE + '/manifest.json',
+  BASE + '/icon.svg',
+  BASE + '/icon-maskable.svg',
+  BASE + '/favicon.svg',
 ];
 
 self.addEventListener('install', (event) => {
