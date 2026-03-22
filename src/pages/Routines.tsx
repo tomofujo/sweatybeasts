@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Plus, Trash2, Play, Edit3, X, Save, Dumbbell } from 'lucide-react';
 import PageWrapper from '../components/PageWrapper';
 import ExerciseSVG from '../components/ExerciseSVG';
-import type { WorkoutExercise, Exercise, MuscleGroup } from '../types';
+import type { WorkoutExercise, Exercise } from '../types';
 import { getExercises, saveExercises } from '../utils/storage';
 import { builtInExercises } from '../data/exercises';
 
