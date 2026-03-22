@@ -1,0 +1,429 @@
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Plus, Trash2, Play, Edit3, X, Save, Dumbbell } from 'lucide-react';
+import PageWrapper from '../components/PageWrapper';
+import ExerciseSVG from '../components/ExerciseSVG';
+import type { WorkoutExercise, Exercise, MuscleGroup } from '../types';
+import { getExercises, saveExercises } from '../utils/storage';
+import { builtInExercises } from '../data/exercises';
+
+// ── Types ─────────────────────────────────────────────────────────────────────
+
+interface Routine {
+  id: string;
+  name: string;
+  exercises: RoutineExercise[];
+  createdAt: string;
+}
+
+interface RoutineExercise {
+  exerciseId: string;
+  exerciseName: string;
+  targetSets: number;
+}
+
+const STORAGE_KEY = 'sb_routines';
+
+function getRoutines(): Routine[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveRoutines(routines: Routine[]): void {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(routines));
+}
+
+const MUSCLE_GROUPS = ['All', 'Chest', 'Back', 'Shoulders', 'Legs', 'Arms', 'Core', 'Full Body'] as const;
+
+export default function Routines() {
+  const navigate = useNavigate();
+  const [routines, setRoutines] = useState<Routine[]>([]);
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+
+  // Form state
+  const [routineName, setRoutineName] = useState('');
+  const [routineExercises, setRoutineExercises] = useState<RoutineExercise[]>([]);
+
+  // Exercise search
+  const [showExerciseSearch, setShowExerciseSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [muscleFilter, setMuscleFilter] = useState<string>('All');
+  const [availableExercises, setAvailableExercises] = useState<Exercise[]>([]);
+
+  useEffect(() => {
+    setRoutines(getRoutines());
+    let exercises = getExercises();
+    if (exercises.length === 0) {
+      saveExercises(builtInExercises);
+      exercises = builtInExercises;
+    }
+    setAvailableExercises(exercises);
+  }, []);
+
+  const filteredExercises = availableExercises.filter((ex) => {
+    const matchesSearch = ex.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesMuscle = muscleFilter === 'All' || ex.muscleGroup === muscleFilter;
+    return matchesSearch && matchesMuscle;
+  });
+
+  function resetForm() {
+    setRoutineName('');
+    setRoutineExercises([]);
+    setEditingId(null);
+    setShowForm(false);
+  }
+
+  function openCreate() {
+    resetForm();
+    setShowForm(true);
+  }
+
+  function openEdit(routine: Routine) {
+    setRoutineName(routine.name);
+    setRoutineExercises([...routine.exercises]);
+    setEditingId(routine.id);
+    setShowForm(true);
+  }
+
+  function handleSave() {
+    if (!routineName.trim() || routineExercises.length === 0) return;
+
+    const routine: Routine = {
+      id: editingId ?? crypto.randomUUID(),
+      name: routineName.trim(),
+      exercises: routineExercises,
+      createdAt: editingId
+        ? (routines.find((r) => r.id === editingId)?.createdAt ?? new Date().toISOString())
+        : new Date().toISOString(),
+    };
+
+    let updated: Routine[];
+    if (editingId) {
+      updated = routines.map((r) => (r.id === editingId ? routine : r));
+    } else {
+      updated = [...routines, routine];
+    }
+
+    saveRoutines(updated);
+    setRoutines(updated);
+    resetForm();
+  }
+
+  function handleDelete(id: string) {
+    const updated = routines.filter((r) => r.id !== id);
+    saveRoutines(updated);
+    setRoutines(updated);
+    setDeleteConfirm(null);
+  }
+
+  function addExerciseToRoutine(exercise: Exercise) {
+    setRoutineExercises((prev) => [
+      ...prev,
+      { exerciseId: exercise.id, exerciseName: exercise.name, targetSets: 3 },
+    ]);
+    setShowExerciseSearch(false);
+  }
+
+  function removeExerciseFromRoutine(index: number) {
+    setRoutineExercises((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function updateTargetSets(index: number, sets: number) {
+    setRoutineExercises((prev) =>
+      prev.map((ex, i) => (i === index ? { ...ex, targetSets: sets } : ex))
+    );
+  }
+
+  function startRoutine(routine: Routine) {
+    // Build WorkoutExercise array with empty sets based on targetSets
+    const workoutExercises: WorkoutExercise[] = routine.exercises.map((re) => ({
+      id: crypto.randomUUID(),
+      exerciseId: re.exerciseId,
+      exerciseName: re.exerciseName,
+      sets: Array.from({ length: re.targetSets }, () => ({
+        id: crypto.randomUUID(),
+        reps: 0,
+        weight: 0,
+        notes: '',
+        isPB: false,
+      })),
+    }));
+
+    navigate('/workout', {
+      state: {
+        template: {
+          name: routine.name,
+          exercises: workoutExercises,
+        },
+      },
+    });
+  }
+
+  return (
+    <PageWrapper>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold uppercase tracking-wider text-[#ffffff]">
+            Routines
+          </h1>
+          <button
+            onClick={openCreate}
+            className="flex items-center gap-2 bg-[#D4FF00] text-[#0a0a0a] px-4 py-2 rounded-[2px] font-bold uppercase tracking-wider text-sm hover:brightness-110 transition-all"
+          >
+            <Plus size={18} />
+            New Routine
+          </button>
+        </div>
+
+        {/* Routine form */}
+        {showForm && (
+          <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-[2px] p-6 space-y-5">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold uppercase tracking-wider text-[#ffffff]">
+                {editingId ? 'Edit Routine' : 'Create Routine'}
+              </h2>
+              <button onClick={resetForm} className="text-[#888888] hover:text-[#ffffff] transition-colors">
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Name */}
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-[#888888] mb-1.5">
+                Routine Name <span className="text-[#ff4444]">*</span>
+              </label>
+              <input
+                type="text"
+                value={routineName}
+                onChange={(e) => setRoutineName(e.target.value)}
+                placeholder="e.g. Push Day, Upper Body"
+                className="w-full bg-[#0a0a0a] border border-[#2a2a2a] text-[#ffffff] placeholder-[#888888] px-4 py-2.5 rounded-[2px] text-sm focus:outline-none focus:border-[#D4FF00] transition-colors"
+              />
+            </div>
+
+            {/* Exercise list */}
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-[#888888] mb-2">
+                Exercises
+              </label>
+              {routineExercises.length === 0 ? (
+                <p className="text-sm text-[#888888] py-4 text-center">No exercises added yet.</p>
+              ) : (
+                <div className="space-y-2 mb-3">
+                  {routineExercises.map((re, idx) => (
+                    <div key={idx} className="flex items-center gap-3 bg-[#0a0a0a] border border-[#2a2a2a] rounded-[2px] p-3">
+                      <div className="w-8 h-8 bg-[#1f1f1f] border border-[#2a2a2a] rounded-[2px] overflow-hidden shrink-0">
+                        <ExerciseSVG exerciseId={re.exerciseId} className="w-full h-full" />
+                      </div>
+                      <span className="flex-1 text-sm font-bold text-[#ffffff] truncate">{re.exerciseName}</span>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <input
+                          type="number"
+                          min={1}
+                          max={20}
+                          value={re.targetSets}
+                          onChange={(e) => updateTargetSets(idx, parseInt(e.target.value) || 1)}
+                          className="w-12 bg-[#1f1f1f] border border-[#2a2a2a] rounded-[2px] px-1 py-1 text-[#ffffff] text-sm text-center focus:outline-none focus:border-[#D4FF00]"
+                        />
+                        <span className="text-[10px] text-[#888888] uppercase">sets</span>
+                      </div>
+                      <button
+                        onClick={() => removeExerciseFromRoutine(idx)}
+                        className="text-[#888888] hover:text-[#ff4444] transition-colors p-1"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <button
+                onClick={() => {
+                  setSearchQuery('');
+                  setMuscleFilter('All');
+                  setShowExerciseSearch(true);
+                }}
+                className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#D4FF00] hover:brightness-110 transition-all"
+              >
+                <Plus size={14} />
+                Add Exercise
+              </button>
+            </div>
+
+            {/* Save */}
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                onClick={handleSave}
+                disabled={!routineName.trim() || routineExercises.length === 0}
+                className="flex items-center gap-2 bg-[#D4FF00] text-[#0a0a0a] px-5 py-2.5 rounded-[2px] font-bold uppercase tracking-wider text-sm hover:brightness-110 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <Save size={16} />
+                {editingId ? 'Update Routine' : 'Save Routine'}
+              </button>
+              <button
+                onClick={resetForm}
+                className="px-5 py-2.5 rounded-[2px] font-bold uppercase tracking-wider text-sm text-[#888888] border border-[#2a2a2a] hover:text-[#ffffff] hover:border-[#888888] transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Routine list */}
+        {routines.length === 0 && !showForm ? (
+          <div className="text-center py-16">
+            <Dumbbell size={32} className="mx-auto mb-3 text-[#888888]" />
+            <p className="text-[#888888] font-bold uppercase tracking-wider text-sm">
+              No routines yet. Create your first template.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {routines.map((routine) => (
+              <div
+                key={routine.id}
+                className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-[2px] p-4"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-[#ffffff]">
+                    {routine.name}
+                  </h3>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => startRoutine(routine)}
+                      className="flex items-center gap-1 px-3 py-1.5 bg-[#D4FF00] text-[#0a0a0a] rounded-[2px] text-[10px] font-bold uppercase tracking-wider hover:brightness-110 transition-all"
+                    >
+                      <Play size={12} />
+                      Start
+                    </button>
+                    <button
+                      onClick={() => openEdit(routine)}
+                      className="p-1.5 text-[#888888] hover:text-[#D4FF00] transition-colors"
+                    >
+                      <Edit3 size={14} />
+                    </button>
+                    <button
+                      onClick={() => setDeleteConfirm(routine.id)}
+                      className="p-1.5 text-[#888888] hover:text-[#ff4444] transition-colors"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {routine.exercises.map((re, idx) => (
+                    <span
+                      key={idx}
+                      className="text-[10px] font-bold uppercase tracking-wider text-[#888888] bg-[#1f1f1f] border border-[#2a2a2a] px-2 py-1 rounded-[2px]"
+                    >
+                      {re.exerciseName} ({re.targetSets}s)
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Delete confirmation */}
+        {deleteConfirm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
+            <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-[2px] p-6 max-w-sm w-full mx-4 space-y-4">
+              <h3 className="text-base font-bold uppercase tracking-wider text-[#ffffff]">
+                Delete Routine?
+              </h3>
+              <p className="text-sm text-[#888888]">
+                Are you sure? This cannot be undone.
+              </p>
+              <div className="flex items-center gap-3 pt-1">
+                <button
+                  onClick={() => handleDelete(deleteConfirm)}
+                  className="flex items-center gap-2 bg-[#ff4444] text-[#ffffff] px-4 py-2 rounded-[2px] font-bold uppercase tracking-wider text-sm"
+                >
+                  <Trash2 size={14} />
+                  Delete
+                </button>
+                <button
+                  onClick={() => setDeleteConfirm(null)}
+                  className="px-4 py-2 rounded-[2px] font-bold uppercase tracking-wider text-sm text-[#888888] border border-[#2a2a2a] hover:text-[#ffffff]"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Exercise search modal */}
+        {showExerciseSearch && (
+          <div className="fixed inset-0 z-50 flex items-start justify-center">
+            <div className="absolute inset-0 bg-black/70" onClick={() => setShowExerciseSearch(false)} />
+            <div className="relative w-full max-w-lg mx-4 mt-8 sm:mt-24 bg-[#1a1a1a] border border-[#2a2a2a] rounded-[2px] max-h-[80vh] flex flex-col">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-[#2a2a2a]">
+                <h2 className="text-sm font-bold uppercase tracking-wider text-[#ffffff]">Select Exercise</h2>
+                <button onClick={() => setShowExerciseSearch(false)} className="text-[#888888] hover:text-[#ffffff] p-1">
+                  <X size={18} />
+                </button>
+              </div>
+              <div className="px-4 py-3 border-b border-[#2a2a2a]">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search exercises..."
+                  autoFocus
+                  className="w-full bg-[#1f1f1f] border border-[#2a2a2a] rounded-[2px] px-3 py-2 text-[#ffffff] text-sm placeholder:text-[#888888]/50 focus:outline-none focus:border-[#D4FF00]"
+                />
+              </div>
+              <div className="px-4 py-2 border-b border-[#2a2a2a] flex flex-wrap gap-2">
+                {MUSCLE_GROUPS.map((group) => (
+                  <button
+                    key={group}
+                    onClick={() => setMuscleFilter(group)}
+                    className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-[2px] transition-colors ${
+                      muscleFilter === group
+                        ? 'bg-[#D4FF00] text-[#0a0a0a]'
+                        : 'bg-[#1f1f1f] text-[#888888] border border-[#2a2a2a]'
+                    }`}
+                  >
+                    {group}
+                  </button>
+                ))}
+              </div>
+              <div className="flex-1 overflow-y-auto">
+                {filteredExercises.length === 0 ? (
+                  <div className="px-4 py-8 text-center text-[#888888] text-sm">No exercises found.</div>
+                ) : (
+                  filteredExercises.map((exercise) => (
+                    <button
+                      key={exercise.id}
+                      onClick={() => addExerciseToRoutine(exercise)}
+                      className="w-full text-left px-4 py-3 border-b border-[#2a2a2a] hover:bg-[#1f1f1f] transition-colors flex items-center gap-3"
+                    >
+                      <div className="w-10 h-10 bg-[#1f1f1f] border border-[#2a2a2a] rounded-[2px] overflow-hidden shrink-0">
+                        <ExerciseSVG exerciseId={exercise.id} className="w-full h-full" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-[#ffffff] truncate">{exercise.name}</p>
+                        <p className="text-[10px] text-[#888888] uppercase tracking-wider">{exercise.muscleGroup}</p>
+                      </div>
+                    </button>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </PageWrapper>
+  );
+}

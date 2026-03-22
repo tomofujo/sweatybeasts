@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, List, Trash2, Copy, ChevronLeft, ChevronRight, Dumbbell, Zap, X } from 'lucide-react';
+import { Calendar, List, Trash2, Copy, Edit3, ChevronLeft, ChevronRight, Dumbbell, Zap, X } from 'lucide-react';
 import PageWrapper from '../components/PageWrapper';
 import { getWorkouts, saveWorkouts, getActivities, saveActivities, getSettings } from '../utils/storage';
 import { kgToDisplay } from '../utils/units';
@@ -217,6 +217,15 @@ export default function History() {
     }
   }
 
+  function handleEdit(sessionRef: SessionRef) {
+    if (sessionRef.type === 'workout') {
+      const workout = workouts.find((w) => w.id === sessionRef.id);
+      if (workout) {
+        navigate('/workout', { state: { editWorkout: workout } });
+      }
+    }
+  }
+
   function getSelectedData(): { type: 'workout'; data: Workout } | { type: 'activity'; data: Activity } | null {
     if (!selectedSession) return null;
     if (selectedSession.type === 'workout') {
@@ -235,7 +244,8 @@ export default function History() {
     const exerciseCount = w.exercises.length;
     const setCount = w.exercises.reduce((t, ex) => t + ex.sets.length, 0);
     const volume = kgToDisplay(getWorkoutVolume(w), weightUnit);
-    return `${exerciseCount} exercise${exerciseCount !== 1 ? 's' : ''}, ${setCount} set${setCount !== 1 ? 's' : ''}, ${volume} ${weightUnit} total volume`;
+    const prefix = w.status === 'draft' ? '[DRAFT] ' : '';
+    return `${prefix}${exerciseCount} exercise${exerciseCount !== 1 ? 's' : ''}, ${setCount} set${setCount !== 1 ? 's' : ''}, ${volume} ${weightUnit} total volume`;
   }
 
   function renderActivitySummary(a: Activity): string {
@@ -273,16 +283,28 @@ export default function History() {
             {selectedData.type === 'workout' ? renderWorkoutDetail(selectedData.data) : renderActivityDetail(selectedData.data)}
 
             {/* Action buttons */}
-            <div className="flex gap-3 pt-4" style={{ borderTop: '1px solid #2a2a2a' }}>
+            <div className="flex gap-3 pt-4 flex-wrap" style={{ borderTop: '1px solid #2a2a2a' }}>
+              {selectedSession?.type === 'workout' && (
+                <button
+                  onClick={() => handleEdit(selectedSession!)}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 font-bold uppercase tracking-wider text-xs transition-colors cursor-pointer"
+                  style={{ backgroundColor: '#D4FF00', color: '#0a0a0a', borderRadius: '2px' }}
+                  onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.9')}
+                  onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
+                >
+                  <Edit3 size={14} />
+                  EDIT
+                </button>
+              )}
               <button
                 onClick={() => handleDuplicate(selectedSession!)}
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-3 font-bold uppercase tracking-wider text-xs transition-colors cursor-pointer"
-                style={{ backgroundColor: '#D4FF00', color: '#0a0a0a', borderRadius: '2px' }}
+                style={{ backgroundColor: selectedSession?.type === 'workout' ? '#1f1f1f' : '#D4FF00', color: selectedSession?.type === 'workout' ? '#ffffff' : '#0a0a0a', border: selectedSession?.type === 'workout' ? '1px solid #2a2a2a' : 'none', borderRadius: '2px' }}
                 onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.9')}
                 onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
               >
                 <Copy size={14} />
-                DUPLICATE AS TEMPLATE
+                DUPLICATE
               </button>
               <button
                 onClick={() => setDeleteConfirm(selectedSession!.id)}

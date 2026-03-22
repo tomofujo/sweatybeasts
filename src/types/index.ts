@@ -41,6 +41,7 @@ export interface WorkoutExercise {
   exerciseId: string;
   exerciseName: string;
   sets: WorkoutSet[];
+  supersetGroup?: string; // Exercises sharing the same group ID are a superset
 }
 
 export interface Workout {
@@ -49,6 +50,7 @@ export interface Workout {
   name: string;
   notes: string;
   exercises: WorkoutExercise[];
+  status: 'draft' | 'complete';
   createdAt: string;
 }
 

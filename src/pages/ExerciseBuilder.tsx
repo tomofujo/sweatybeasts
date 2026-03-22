@@ -81,7 +81,6 @@ export default function ExerciseBuilder() {
     if (!name.trim()) return;
 
     const validInstructions = instructions.filter((s) => s.trim() !== '');
-    if (validInstructions.length === 0) return;
 
     const exerciseData: Exercise = {
       id: editingId ?? generateId(),
@@ -299,7 +298,7 @@ export default function ExerciseBuilder() {
             {/* Instructions */}
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-[#888888] mb-1.5">
-                Instructions <span className="text-[#ff4444]">*</span>
+                Instructions <span className="text-[#888888] font-normal normal-case tracking-normal">(optional)</span>
               </label>
               <div className="space-y-2">
                 {instructions.map((step, index) => (
@@ -354,7 +353,7 @@ export default function ExerciseBuilder() {
             <div className="flex items-center gap-3 pt-2">
               <button
                 onClick={handleSave}
-                disabled={!name.trim() || instructions.every((s) => !s.trim())}
+                disabled={!name.trim()}
                 className="flex items-center gap-2 bg-[#D4FF00] text-[#0a0a0a] px-5 py-2.5 rounded-[2px] font-bold uppercase tracking-wider text-sm hover:brightness-110 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <Save size={16} />
