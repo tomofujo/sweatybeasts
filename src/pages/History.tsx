@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Calendar, List, Trash2, Copy, Edit3, ChevronLeft, ChevronRight, Dumbbell, Zap, X } from 'lucide-react';
+import { Calendar, List, Trash2, Copy, Edit3, ChevronLeft, ChevronRight, Dumbbell, Zap, X, Save } from 'lucide-react';
 import PageWrapper from '../components/PageWrapper';
-import { getWorkouts, saveWorkouts, getActivities, saveActivities, getSettings } from '../utils/storage';
+import { getWorkouts, saveWorkouts, getActivities, saveActivities, getSettings, getRoutines, saveRoutines } from '../utils/storage';
 import { kgToDisplay } from '../utils/units';
 import type { Workout, Activity, AppSettings } from '../types';
 import { MOOD_EMOJIS } from '../types';
@@ -46,12 +46,23 @@ export default function History() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
+  const [saveRoutineWorkoutId, setSaveRoutineWorkoutId] = useState<string | null>(null);
+  const [saveRoutineName, setSaveRoutineName] = useState('');
 
   useEffect(() => {
     setWorkouts(getWorkouts());
     setActivities(getActivities());
     setSettings(getSettings());
   }, []);
+
+  // Refresh whenever the history tab becomes active (keep-alive)
+  useEffect(() => {
+    if (location.pathname === '/history') {
+      setWorkouts(getWorkouts());
+      setActivities(getActivities());
+      setSettings(getSettings());
+    }
+  }, [location.pathname]);
 
   // Open detail modal when navigated here from Dashboard with an openSession ref
   useEffect(() => {
@@ -304,16 +315,31 @@ export default function History() {
             {/* Action buttons */}
             <div className="flex gap-3 pt-4 flex-wrap" style={{ borderTop: '1px solid #2a2a2a' }}>
               {selectedSession?.type === 'workout' && (
-                <button
-                  onClick={() => handleEdit(selectedSession!)}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 font-bold uppercase tracking-wider text-xs transition-colors cursor-pointer"
-                  style={{ backgroundColor: '#D4FF00', color: '#0a0a0a', borderRadius: '2px' }}
-                  onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.9')}
-                  onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
-                >
-                  <Edit3 size={14} />
-                  EDIT
-                </button>
+                <>
+                  <button
+                    onClick={() => handleEdit(selectedSession!)}
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 font-bold uppercase tracking-wider text-xs transition-colors cursor-pointer"
+                    style={{ backgroundColor: '#D4FF00', color: '#0a0a0a', borderRadius: '2px' }}
+                    onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.9')}
+                    onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
+                  >
+                    <Edit3 size={14} />
+                    EDIT
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSaveRoutineWorkoutId(selectedSession!.id);
+                      setSaveRoutineName(selectedData?.type === 'workout' ? selectedData.data.name : '');
+                    }}
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 font-bold uppercase tracking-wider text-xs transition-colors cursor-pointer"
+                    style={{ backgroundColor: '#1f1f1f', color: '#D4FF00', border: '1px solid #D4FF00', borderRadius: '2px' }}
+                    onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.9')}
+                    onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
+                  >
+                    <Save size={14} />
+                    SAVE AS ROUTINE
+                  </button>
+                </>
               )}
               <button
                 onClick={() => handleDuplicate(selectedSession!)}
@@ -333,11 +359,66 @@ export default function History() {
                 onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
               >
                 <Trash2 size={14} />
-                DELETE
               </button>
             </div>
           </div>
         </div>
+
+        {/* Save as Routine modal */}
+        {saveRoutineWorkoutId && (
+          <div className="fixed inset-0 z-60 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.9)' }}>
+            <div className="w-full max-w-sm p-6 space-y-4" style={{ backgroundColor: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: '2px' }}>
+              <h4 className="font-bold uppercase tracking-wider text-sm" style={{ color: '#ffffff' }}>
+                SAVE AS ROUTINE
+              </h4>
+              <input
+                type="text"
+                value={saveRoutineName}
+                onChange={(e) => setSaveRoutineName(e.target.value)}
+                placeholder="Routine name..."
+                autoFocus
+                style={{ width: '100%', backgroundColor: '#0a0a0a', border: '1px solid #2a2a2a', borderRadius: '2px', padding: '8px 12px', color: '#ffffff', fontSize: '14px', outline: 'none' }}
+                onFocus={(e) => (e.currentTarget.style.borderColor = '#D4FF00')}
+                onBlur={(e) => (e.currentTarget.style.borderColor = '#2a2a2a')}
+              />
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    const workout = workouts.find((w) => w.id === saveRoutineWorkoutId);
+                    if (!workout || !saveRoutineName.trim()) return;
+                    const routines = getRoutines();
+                    const newRoutine = {
+                      id: crypto.randomUUID(),
+                      name: saveRoutineName.trim(),
+                      exercises: workout.exercises.map((ex) => ({
+                        exerciseId: ex.exerciseId,
+                        exerciseName: ex.exerciseName,
+                        targetSets: ex.sets.length || 3,
+                        targetReps: ex.sets.length > 0 ? (ex.sets[0].reps || 10) : 10,
+                      })),
+                      createdAt: new Date().toISOString(),
+                    };
+                    saveRoutines([...routines, newRoutine]);
+                    setSaveRoutineWorkoutId(null);
+                    setSaveRoutineName('');
+                  }}
+                  disabled={!saveRoutineName.trim()}
+                  className="flex-1 px-4 py-3 font-bold uppercase tracking-wider text-xs cursor-pointer disabled:opacity-40"
+                  style={{ backgroundColor: '#D4FF00', color: '#0a0a0a', borderRadius: '2px' }}
+                >
+                  SAVE
+                </button>
+                <button
+                  onClick={() => { setSaveRoutineWorkoutId(null); setSaveRoutineName(''); }}
+                  className="flex-1 px-4 py-3 font-bold uppercase tracking-wider text-xs cursor-pointer"
+                  style={{ backgroundColor: 'transparent', color: '#888888', border: '1px solid #2a2a2a', borderRadius: '2px' }}
+                >
+                  CANCEL
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Delete confirmation modal */}
         {deleteConfirm && (

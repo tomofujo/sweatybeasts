@@ -8,6 +8,7 @@ const KEYS = {
   settings: 'sb_settings',
   pbs: 'sb_pbs',
   activeSession: 'sb_active_session',
+  routines: 'sb_routines',
 } as const;
 
 export interface ActiveSession {
@@ -79,6 +80,20 @@ export function saveActiveSession(session: ActiveSession): void {
 }
 export function clearActiveSession(): void {
   localStorage.removeItem(KEYS.activeSession);
+}
+
+// Routines
+export interface StoredRoutine {
+  id: string;
+  name: string;
+  exercises: { exerciseId: string; exerciseName: string; targetSets: number; targetReps: number }[];
+  createdAt: string;
+}
+export function getRoutines(): StoredRoutine[] {
+  return get<StoredRoutine[]>(KEYS.routines, []);
+}
+export function saveRoutines(routines: StoredRoutine[]): void {
+  set(KEYS.routines, routines);
 }
 
 // Clear all

@@ -31,6 +31,7 @@ export type Equipment =
 export interface WorkoutSet {
   id: string;
   reps: number;
+  seconds?: number; // used when exercise trackingMode is 'seconds'
   weight: number; // stored in kg
   notes: string;
   isPB: boolean;
@@ -42,6 +43,7 @@ export interface WorkoutExercise {
   exerciseName: string;
   sets: WorkoutSet[];
   supersetGroup?: string; // Exercises sharing the same group ID are a superset
+  trackingMode?: 'reps' | 'seconds'; // defaults to 'reps' when absent
 }
 
 export interface Workout {

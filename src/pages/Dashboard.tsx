@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Dumbbell, Zap, Flame, Trophy, ChevronRight } from 'lucide-react';
 import { getWorkouts, getActivities, getSettings } from '../utils/storage';
 import type { Workout, Activity, AppSettings } from '../types';
@@ -140,6 +140,7 @@ function formatDate(dateStr: string): string {
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [settings, setSettings] = useState<AppSettings | null>(null);
@@ -149,6 +150,15 @@ export default function Dashboard() {
     setActivities(getActivities());
     setSettings(getSettings());
   }, []);
+
+  // Refresh data whenever the home tab becomes active (keep-alive)
+  useEffect(() => {
+    if (location.pathname === '/') {
+      setWorkouts(getWorkouts());
+      setActivities(getActivities());
+      setSettings(getSettings());
+    }
+  }, [location.pathname]);
 
   if (!settings) return null;
 

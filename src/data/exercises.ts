@@ -806,4 +806,347 @@ export const builtInExercises: Exercise[] = [
     ],
     isCustom: false,
   },
+
+  // ─── Hyrox & Functional ──────────────────────────────────────────────────────
+
+  {
+    id: 'ski-erg',
+    name: 'Ski Erg',
+    muscleGroup: 'Full Body',
+    secondaryMuscles: ['Back', 'Core', 'Shoulders'],
+    equipment: 'Machine',
+    description:
+      'A cable-resistance ski simulator used in Hyrox competitions. It develops cardiovascular fitness and lat/shoulder endurance through a powerful double-pole pulling motion.',
+    instructions: [
+      'Stand facing the SkiErg, feet shoulder-width apart.',
+      'Reach up and grab both handles at full arm extension.',
+      'Drive the handles down powerfully by hinging at the hips and engaging your lats and core.',
+      'Follow through until your hands pass your hips, then return to the start in a controlled manner.',
+    ],
+    isCustom: false,
+  },
+  {
+    id: 'sled-push',
+    name: 'Sled Push',
+    muscleGroup: 'Legs',
+    secondaryMuscles: ['Full Body', 'Core'],
+    equipment: 'Other',
+    description:
+      'A Hyrox staple — pushing a weighted sled over a set distance. It builds leg drive, cardiovascular conditioning, and mental toughness with minimal eccentric loading.',
+    instructions: [
+      'Load the sled to the target weight. Face the sled and grasp the upright handles.',
+      'Lean forward at roughly 45 degrees, keeping your back straight.',
+      'Drive powerfully through the balls of your feet in short, rapid steps to move the sled forward.',
+      'Maintain a strong core brace throughout; do not let your hips rise above your shoulders.',
+    ],
+    isCustom: false,
+  },
+  {
+    id: 'sled-pull',
+    name: 'Sled Pull',
+    muscleGroup: 'Back',
+    secondaryMuscles: ['Arms', 'Core', 'Legs'],
+    equipment: 'Other',
+    description:
+      'Another Hyrox event — pulling a sled towards you hand-over-hand using a rope or strap. Primarily challenges the upper back, biceps, and grip.',
+    instructions: [
+      'Attach a rope or strap to the sled and walk back to full extension.',
+      'Stand in an athletic stance with knees slightly bent and core braced.',
+      'Pull the rope hand-over-hand to drag the sled towards you, re-gripping with each pull.',
+      'Walk backwards to reset the distance, maintaining control of the rope throughout.',
+    ],
+    isCustom: false,
+  },
+  {
+    id: 'burpee-broad-jump',
+    name: 'Burpee Broad Jump',
+    muscleGroup: 'Full Body',
+    secondaryMuscles: ['Legs', 'Core'],
+    equipment: 'Bodyweight',
+    description:
+      'The Hyrox burpee variation: perform a standard burpee then explode forward with a two-footed broad jump instead of jumping in place. It couples a press-up with explosive horizontal power.',
+    instructions: [
+      'Stand tall. Drop your hands to the floor just outside your feet.',
+      'Jump or step your feet back into a plank and perform a chest-to-floor press-up.',
+      'Jump your feet forward to your hands and stand tall.',
+      'Swing your arms back and explode forward with a two-footed broad jump, landing softly.',
+      'Walk or jog back to the start and repeat.',
+    ],
+    isCustom: false,
+  },
+  {
+    id: 'rowing-machine',
+    name: 'Rowing Machine',
+    muscleGroup: 'Full Body',
+    secondaryMuscles: ['Back', 'Legs', 'Core'],
+    equipment: 'Machine',
+    description:
+      'The Concept2 rowing ergometer used in Hyrox and CrossFit. It delivers one of the highest calorie-burn rates of any cardio machine while working the full body in a low-impact movement.',
+    instructions: [
+      'Sit on the erg and strap your feet in. Grab the handle with an overhand grip.',
+      'Start the drive by pushing with your legs first, keeping your arms straight.',
+      'Once legs are nearly straight, lean back slightly and draw the handle to your lower chest.',
+      'Return by extending your arms, hinging forward, and then bending your knees.',
+    ],
+    isCustom: false,
+  },
+  {
+    id: 'farmers-carry',
+    name: "Farmer's Carry",
+    muscleGroup: 'Full Body',
+    secondaryMuscles: ['Core', 'Arms', 'Back'],
+    equipment: 'Dumbbell',
+    description:
+      'Walking with heavy implements in each hand. One of the most functional strength exercises and a Hyrox event. Builds grip, traps, core stability, and total body conditioning.',
+    instructions: [
+      'Pick up a heavy dumbbell or kettlebell in each hand using a deadlift pattern.',
+      'Stand tall with shoulders packed down, core braced, and head neutral.',
+      'Walk the prescribed distance with controlled steps, avoiding excessive side-to-side sway.',
+      'Lower the weights to the floor under control at the end.',
+    ],
+    isCustom: false,
+  },
+  {
+    id: 'sandbag-lunges',
+    name: 'Sandbag Lunges',
+    muscleGroup: 'Legs',
+    secondaryMuscles: ['Core', 'Full Body'],
+    equipment: 'Other',
+    description:
+      'Hyrox event: walking lunges with a sandbag held in a bear-hug position. The shifting weight of the sandbag adds an extra core stability demand compared to dumbbell lunges.',
+    instructions: [
+      'Lift the sandbag and hold it across your chest in a bear-hug grip.',
+      'Step forward into a deep lunge, lowering your back knee to just above the floor.',
+      'Push through your front heel to rise, then step the rear foot forward to meet the front.',
+      'Continue alternating legs for the required distance, keeping the sandbag stable against your chest.',
+    ],
+    isCustom: false,
+  },
+  {
+    id: 'wall-balls',
+    name: 'Wall Balls',
+    muscleGroup: 'Full Body',
+    secondaryMuscles: ['Legs', 'Shoulders', 'Core'],
+    equipment: 'Other',
+    description:
+      'Used in both Hyrox and CrossFit: squat with a medicine ball then throw it up to a target on the wall. Combines lower and upper body explosiveness into one seamless movement.',
+    instructions: [
+      'Stand about a foot from the wall, holding a medicine ball at chest height.',
+      'Perform a deep squat, keeping the ball at chest level and your chest up.',
+      'Explode upward and throw the ball to the target mark on the wall (typically 9–10 ft).',
+      'Catch the returning ball, absorb the load into the next squat, and repeat continuously.',
+    ],
+    isCustom: false,
+  },
+
+  // ─── Bodyweight ───────────────────────────────────────────────────────────────
+
+  {
+    id: 'burpees',
+    name: 'Burpees',
+    muscleGroup: 'Full Body',
+    secondaryMuscles: ['Core', 'Chest'],
+    equipment: 'Bodyweight',
+    description:
+      'A full-body calisthenics exercise combining a squat, plank, press-up, and jump. High calorie burn and cardiovascular demand make it a conditioning staple.',
+    instructions: [
+      'Stand tall. Drop your hands to the floor and jump your feet back into a high plank.',
+      'Perform a press-up (or lower chest to floor for Hyrox standard).',
+      'Jump your feet back to your hands, then explosively jump straight up, clapping overhead.',
+    ],
+    isCustom: false,
+  },
+  {
+    id: 'mountain-climbers',
+    name: 'Mountain Climbers',
+    muscleGroup: 'Core',
+    secondaryMuscles: ['Chest', 'Legs'],
+    equipment: 'Bodyweight',
+    description:
+      'A dynamic core and cardiovascular exercise performed in a high-plank position, alternately driving the knees towards the chest.',
+    instructions: [
+      'Start in a high plank with hands directly under shoulders, body in a straight line.',
+      'Drive your right knee towards your chest, then quickly return it and drive your left knee in.',
+      'Continue alternating at a fast pace, keeping your hips level and core tight throughout.',
+    ],
+    isCustom: false,
+  },
+  {
+    id: 'sit-ups',
+    name: 'Sit-ups',
+    muscleGroup: 'Core',
+    secondaryMuscles: [],
+    equipment: 'Bodyweight',
+    description:
+      'A classic abdominal exercise where you curl the upper body off the floor. Trains the rectus abdominis through a full range of motion.',
+    instructions: [
+      'Lie on your back with knees bent and feet flat. Cross your arms over your chest or place hands by your temples.',
+      'Engage your core and curl your torso up until your elbows touch your knees.',
+      'Lower back down under control and repeat.',
+    ],
+    isCustom: false,
+  },
+  {
+    id: 'jumping-jacks',
+    name: 'Jumping Jacks',
+    muscleGroup: 'Full Body',
+    secondaryMuscles: [],
+    equipment: 'Bodyweight',
+    description:
+      'A calisthenics warm-up and conditioning exercise. Simultaneously jump your feet out to the sides while raising your arms overhead, then reverse.',
+    instructions: [
+      'Stand tall with feet together and arms at your sides.',
+      'Jump and simultaneously spread your feet to shoulder width while raising both arms overhead.',
+      'Jump again to return feet together and arms to sides. Repeat at a continuous rhythm.',
+    ],
+    isCustom: false,
+  },
+  {
+    id: 'box-jumps',
+    name: 'Box Jumps',
+    muscleGroup: 'Legs',
+    secondaryMuscles: ['Full Body'],
+    equipment: 'Bodyweight',
+    description:
+      'An explosive plyometric exercise. Jump from the floor onto a raised box, landing softly, then step or jump back down. Develops power, reactive strength, and leg explosiveness.',
+    instructions: [
+      'Stand facing a sturdy box at a comfortable distance.',
+      'Bend your knees, swing your arms back, and explode upward, landing softly on top of the box with both feet.',
+      'Stand up fully on the box, then step or jump back down.',
+      'Reset and repeat immediately.',
+    ],
+    isCustom: false,
+  },
+  {
+    id: 'pistol-squat',
+    name: 'Pistol Squat',
+    muscleGroup: 'Legs',
+    secondaryMuscles: ['Core'],
+    equipment: 'Bodyweight',
+    description:
+      'A single-leg squat that demands exceptional strength, balance, and ankle mobility. One of the most challenging bodyweight lower-body movements.',
+    instructions: [
+      'Stand on one leg with the other extended straight in front of you.',
+      'Push your hips back and lower yourself on the standing leg as deep as possible, keeping your heel on the floor.',
+      'Drive through the heel of the standing leg to return to standing.',
+      'Complete all reps on one side before switching.',
+    ],
+    isCustom: false,
+  },
+
+  // ─── CrossFit ─────────────────────────────────────────────────────────────────
+
+  {
+    id: 'thrusters',
+    name: 'Thrusters',
+    muscleGroup: 'Full Body',
+    secondaryMuscles: ['Legs', 'Shoulders', 'Arms'],
+    equipment: 'Barbell',
+    description:
+      'A CrossFit staple combining a front squat directly into an overhead press in one fluid movement. Used in benchmark workouts like "Fran." Extremely high metabolic demand.',
+    instructions: [
+      'Hold the bar in a front-rack position, elbows high and parallel to the floor.',
+      'Perform a full front squat, keeping elbows up throughout the descent.',
+      'Drive explosively out of the bottom of the squat, using the momentum to press the bar overhead to full lockout.',
+      'Lower the bar back to the front rack and immediately descend into the next squat.',
+    ],
+    isCustom: false,
+  },
+  {
+    id: 'double-unders',
+    name: 'Double Unders',
+    muscleGroup: 'Full Body',
+    secondaryMuscles: ['Core', 'Legs'],
+    equipment: 'Other',
+    description:
+      'Jump rope where the rope passes under your feet twice per jump. A CrossFit cardio staple requiring rhythm, timing, and wrist speed.',
+    instructions: [
+      'Hold the jump rope handles loosely at your sides, rope behind you.',
+      'Jump slightly higher than a single under and flick your wrists quickly to rotate the rope twice under your feet.',
+      'Land softly on the balls of your feet and immediately initiate the next rep.',
+    ],
+    isCustom: false,
+  },
+  {
+    id: 'toes-to-bar',
+    name: 'Toes to Bar',
+    muscleGroup: 'Core',
+    secondaryMuscles: ['Back', 'Arms'],
+    equipment: 'Bodyweight',
+    description:
+      'Hanging from a pull-up bar and raising your toes to touch the bar. A demanding CrossFit core movement that also challenges hip flexor strength and grip.',
+    instructions: [
+      'Hang from a pull-up bar with an overhand grip, arms fully extended.',
+      'Engage your lats and hollow your body slightly.',
+      'Swing your legs upward, keeping them together, until your toes touch the bar.',
+      'Lower your legs under control, let them swing slightly back, then use the swing to initiate the next rep.',
+    ],
+    isCustom: false,
+  },
+  {
+    id: 'muscle-ups',
+    name: 'Muscle-ups',
+    muscleGroup: 'Back',
+    secondaryMuscles: ['Arms', 'Chest', 'Core'],
+    equipment: 'Bodyweight',
+    description:
+      'An advanced CrossFit movement combining a pull-up with a dip transition to press yourself above the rings or bar. Requires strength, coordination, and timing.',
+    instructions: [
+      'Hang from rings or a bar with a false grip (rings) or standard grip (bar).',
+      'Generate a kipping swing if using CrossFit style, or pull strict.',
+      'Pull explosively until your chest reaches the rings/bar, then transition your grip by pushing your shoulders forward and downward.',
+      'Press yourself up to full arm extension above the rings/bar.',
+      'Lower back to the hanging position under control.',
+    ],
+    isCustom: false,
+  },
+  {
+    id: 'snatch',
+    name: 'Snatch',
+    muscleGroup: 'Full Body',
+    secondaryMuscles: ['Legs', 'Back', 'Shoulders'],
+    equipment: 'Barbell',
+    description:
+      'The second Olympic weightlifting competition lift. The bar is lifted from the floor to overhead in one continuous movement with a wide grip. The most technically demanding barbell lift.',
+    instructions: [
+      'Stand with feet hip-width apart, bar over mid-foot. Use a wide snatch grip just inside the plates.',
+      'Set a strong back position, lats engaged, chest up.',
+      'Initiate the first pull by extending the knees, keeping the bar close to the body.',
+      'As the bar passes the knees, accelerate into the second pull — extend explosively through the hips and rise onto your toes.',
+      'Pull yourself under the bar and catch it at full arm extension overhead in a squat, then stand up.',
+    ],
+    isCustom: false,
+  },
+  {
+    id: 'wall-walk',
+    name: 'Wall Walk',
+    muscleGroup: 'Full Body',
+    secondaryMuscles: ['Core', 'Shoulders'],
+    equipment: 'Bodyweight',
+    description:
+      'Start lying face-down with feet against a wall, then walk your feet up the wall while walking your hands towards it until you are in a handstand position against the wall. Used as a scaled handstand push-up substitute in CrossFit.',
+    instructions: [
+      'Lie face-down with your feet touching the base of the wall.',
+      'Press into a high plank and begin walking your feet up the wall.',
+      'Simultaneously walk your hands closer to the wall until you reach a near-vertical handstand.',
+      'Walk your hands and feet back down to the start position under control.',
+    ],
+    isCustom: false,
+  },
+  {
+    id: 'ghd-sit-ups',
+    name: 'GHD Sit-ups',
+    muscleGroup: 'Core',
+    secondaryMuscles: ['Legs'],
+    equipment: 'Machine',
+    description:
+      'Performed on a Glute Ham Developer (GHD) machine. Allows a dramatically greater range of motion than a standard sit-up by letting the torso drop below parallel. High DOMS risk — use sparingly.',
+    instructions: [
+      'Set up on the GHD with your hips on the pad and feet secured in the foot pads.',
+      'Lower your torso back behind parallel, reaching your arms overhead.',
+      'Contract your core and hip flexors explosively to sit up, reaching your hands forward past your feet.',
+      'Lower under control and repeat.',
+    ],
+    isCustom: false,
+  },
 ];

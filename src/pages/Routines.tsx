@@ -40,6 +40,100 @@ function saveRoutines(routines: Routine[]): void {
 
 const MUSCLE_GROUPS = ['All', 'Chest', 'Back', 'Shoulders', 'Legs', 'Arms', 'Core', 'Full Body'] as const;
 
+// ── Pre-built weekly templates ────────────────────────────────────────────────
+
+interface RoutineTemplate {
+  name: string;
+  description: string;
+  exercises: { exerciseId: string; exerciseName: string; targetSets: number; targetReps: number }[];
+}
+
+const WEEKLY_TEMPLATES: RoutineTemplate[] = [
+  {
+    name: 'Strength — Push',
+    description: 'Compound pressing focus',
+    exercises: [
+      { exerciseId: 'barbell-bench-press', exerciseName: 'Bench Press', targetSets: 5, targetReps: 5 },
+      { exerciseId: 'overhead-press', exerciseName: 'Overhead Press', targetSets: 4, targetReps: 5 },
+      { exerciseId: 'incline-dumbbell-press', exerciseName: 'Incline Dumbbell Press', targetSets: 3, targetReps: 8 },
+      { exerciseId: 'tricep-pushdown', exerciseName: 'Tricep Pushdown', targetSets: 3, targetReps: 12 },
+      { exerciseId: 'lateral-raise', exerciseName: 'Lateral Raise', targetSets: 3, targetReps: 15 },
+    ],
+  },
+  {
+    name: 'Strength — Pull',
+    description: 'Compound pulling focus',
+    exercises: [
+      { exerciseId: 'deadlift', exerciseName: 'Deadlift', targetSets: 5, targetReps: 5 },
+      { exerciseId: 'barbell-row', exerciseName: 'Barbell Row', targetSets: 4, targetReps: 6 },
+      { exerciseId: 'pull-up', exerciseName: 'Pull-ups', targetSets: 4, targetReps: 8 },
+      { exerciseId: 'barbell-curl', exerciseName: 'Barbell Curl', targetSets: 3, targetReps: 10 },
+      { exerciseId: 'face-pull', exerciseName: 'Face Pull', targetSets: 3, targetReps: 15 },
+    ],
+  },
+  {
+    name: 'Strength — Legs',
+    description: 'Lower body compound focus',
+    exercises: [
+      { exerciseId: 'squat', exerciseName: 'Squat', targetSets: 5, targetReps: 5 },
+      { exerciseId: 'romanian-deadlift', exerciseName: 'Romanian Deadlift', targetSets: 4, targetReps: 8 },
+      { exerciseId: 'leg-press', exerciseName: 'Leg Press', targetSets: 3, targetReps: 10 },
+      { exerciseId: 'walking-lunges', exerciseName: 'Walking Lunges', targetSets: 3, targetReps: 12 },
+      { exerciseId: 'calf-raise', exerciseName: 'Calf Raise', targetSets: 4, targetReps: 15 },
+    ],
+  },
+  {
+    name: 'Hypertrophy — Chest & Tris',
+    description: 'High volume size focus',
+    exercises: [
+      { exerciseId: 'barbell-bench-press', exerciseName: 'Bench Press', targetSets: 4, targetReps: 10 },
+      { exerciseId: 'incline-dumbbell-press', exerciseName: 'Incline Dumbbell Press', targetSets: 3, targetReps: 12 },
+      { exerciseId: 'pec-deck', exerciseName: 'Pec Deck', targetSets: 3, targetReps: 15 },
+      { exerciseId: 'cable-fly', exerciseName: 'Cable Fly', targetSets: 3, targetReps: 15 },
+      { exerciseId: 'skull-crusher', exerciseName: 'Skull Crusher', targetSets: 3, targetReps: 12 },
+      { exerciseId: 'overhead-tricep-extension', exerciseName: 'Overhead Tricep Extension', targetSets: 3, targetReps: 12 },
+    ],
+  },
+  {
+    name: 'Hypertrophy — Back & Bis',
+    description: 'High volume pulling',
+    exercises: [
+      { exerciseId: 'pull-up', exerciseName: 'Pull-ups', targetSets: 4, targetReps: 10 },
+      { exerciseId: 'barbell-row', exerciseName: 'Barbell Row', targetSets: 4, targetReps: 10 },
+      { exerciseId: 'lat-pulldown', exerciseName: 'Lat Pulldown', targetSets: 3, targetReps: 12 },
+      { exerciseId: 'seated-cable-row', exerciseName: 'Seated Cable Row', targetSets: 3, targetReps: 12 },
+      { exerciseId: 'barbell-curl', exerciseName: 'Barbell Curl', targetSets: 3, targetReps: 12 },
+      { exerciseId: 'hammer-curl', exerciseName: 'Hammer Curl', targetSets: 3, targetReps: 12 },
+    ],
+  },
+  {
+    name: 'Hyrox Race Prep',
+    description: '8 Hyrox events in order',
+    exercises: [
+      { exerciseId: 'rowing-machine', exerciseName: 'Rowing Machine', targetSets: 1, targetReps: 1 },
+      { exerciseId: 'ski-erg', exerciseName: 'Ski Erg', targetSets: 1, targetReps: 1 },
+      { exerciseId: 'sled-push', exerciseName: 'Sled Push', targetSets: 1, targetReps: 1 },
+      { exerciseId: 'sled-pull', exerciseName: 'Sled Pull', targetSets: 1, targetReps: 1 },
+      { exerciseId: 'burpee-broad-jump', exerciseName: 'Burpee Broad Jump', targetSets: 1, targetReps: 20 },
+      { exerciseId: 'rowing-machine', exerciseName: 'Rowing Machine', targetSets: 1, targetReps: 1 },
+      { exerciseId: 'farmers-carry', exerciseName: "Farmer's Carry", targetSets: 1, targetReps: 1 },
+      { exerciseId: 'sandbag-lunges', exerciseName: 'Sandbag Lunges', targetSets: 1, targetReps: 100 },
+      { exerciseId: 'wall-balls', exerciseName: 'Wall Balls', targetSets: 1, targetReps: 75 },
+    ],
+  },
+  {
+    name: 'Full Body — Cardio',
+    description: 'Metabolic conditioning',
+    exercises: [
+      { exerciseId: 'rowing-machine', exerciseName: 'Rowing Machine', targetSets: 3, targetReps: 1 },
+      { exerciseId: 'thrusters', exerciseName: 'Thrusters', targetSets: 3, targetReps: 15 },
+      { exerciseId: 'burpees', exerciseName: 'Burpees', targetSets: 3, targetReps: 10 },
+      { exerciseId: 'kettlebell-swing', exerciseName: 'Kettlebell Swing', targetSets: 3, targetReps: 20 },
+      { exerciseId: 'box-jumps', exerciseName: 'Box Jumps', targetSets: 3, targetReps: 10 },
+    ],
+  },
+];
+
 // ── Number input that allows clearing before typing a new value ───────────────
 
 function NumericInput({
@@ -98,6 +192,8 @@ export default function Routines() {
   // Form state
   const [routineName, setRoutineName] = useState('');
   const [routineExercises, setRoutineExercises] = useState<RoutineExercise[]>([]);
+
+  const [showTemplates, setShowTemplates] = useState(false);
 
   // Exercise search
   const [showExerciseSearch, setShowExerciseSearch] = useState(false);
@@ -234,6 +330,13 @@ export default function Routines() {
           <h1 className="text-2xl font-bold uppercase tracking-wider text-[#ffffff]">
             Routines
           </h1>
+          <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowTemplates(true)}
+            className="flex items-center gap-2 bg-[#1a1a1a] border border-[#2a2a2a] text-[#D4FF00] px-4 py-2 rounded-[2px] font-bold uppercase tracking-wider text-sm hover:border-[#D4FF00] transition-colors"
+          >
+            Templates
+          </button>
           <button
             onClick={openCreate}
             className="flex items-center gap-2 bg-[#D4FF00] text-[#0a0a0a] px-4 py-2 rounded-[2px] font-bold uppercase tracking-wider text-sm hover:brightness-110 transition-all"
@@ -241,6 +344,7 @@ export default function Routines() {
             <Plus size={18} />
             New Routine
           </button>
+          </div>
         </div>
 
         {/* Routine form */}
@@ -442,6 +546,42 @@ export default function Routines() {
                 >
                   Cancel
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Weekly templates modal */}
+        {showTemplates && (
+          <div className="fixed inset-0 z-50 flex items-start justify-center">
+            <div className="absolute inset-0 bg-black/70" onClick={() => setShowTemplates(false)} />
+            <div className="relative w-full max-w-lg mx-4 mt-8 sm:mt-16 bg-[#1a1a1a] border border-[#2a2a2a] rounded-[2px] max-h-[80vh] flex flex-col">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-[#2a2a2a]">
+                <h2 className="text-sm font-bold uppercase tracking-wider text-[#ffffff]">Weekly Templates</h2>
+                <button onClick={() => setShowTemplates(false)} className="text-[#888888] hover:text-[#ffffff] p-1">
+                  <X size={18} />
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto">
+                {WEEKLY_TEMPLATES.map((template) => (
+                  <button
+                    key={template.name}
+                    onClick={() => {
+                      setRoutineName(template.name);
+                      setRoutineExercises(template.exercises.map((ex) => ({
+                        ...ex,
+                        targetReps: ex.targetReps,
+                      })));
+                      setEditingId(null);
+                      setShowTemplates(false);
+                      setShowForm(true);
+                    }}
+                    className="w-full text-left px-4 py-4 border-b border-[#2a2a2a] hover:bg-[#1f1f1f] transition-colors"
+                  >
+                    <p className="text-sm font-bold uppercase tracking-wider text-[#ffffff]">{template.name}</p>
+                    <p className="text-xs text-[#888888] mt-0.5">{template.description} · {template.exercises.length} exercises</p>
+                  </button>
+                ))}
               </div>
             </div>
           </div>

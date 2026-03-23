@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Plus, Trash2, Search, Save, X, Trophy, AlertCircle, Link2, Unlink } from 'lucide-react';
+import { Plus, Trash2, Search, Save, X, Trophy, AlertCircle, Link2, Unlink, ChevronDown, ChevronUp } from 'lucide-react';
 import PageWrapper from '../components/PageWrapper';
 import ExerciseSVG from '../components/ExerciseSVG';
 import RestTimer from '../components/RestTimer';
@@ -92,6 +92,17 @@ export default function WorkoutLogger() {
 
   // Rest timer
   const [showRestTimer, setShowRestTimer] = useState(false);
+
+  // Collapsed exercises
+  const [collapsedExercises, setCollapsedExercises] = useState<Set<string>>(new Set());
+  const toggleCollapse = useCallback((id: string) => {
+    setCollapsedExercises((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
 
   // Active session persistence
   const [showResumeBanner, setShowResumeBanner] = useState(false);
@@ -300,6 +311,16 @@ export default function WorkoutLogger() {
         return ex;
       });
     });
+  }, []);
+
+  const toggleTrackingMode = useCallback((exerciseId: string) => {
+    setExercises((prev) =>
+      prev.map((ex) =>
+        ex.id === exerciseId
+          ? { ...ex, trackingMode: ex.trackingMode === 'seconds' ? 'reps' : 'seconds' }
+          : ex
+      )
+    );
   }, []);
 
   // ── Save workout ──────────────────────────────────────────────────────────
@@ -524,6 +545,8 @@ export default function WorkoutLogger() {
         {/* ── Exercise list ───────────────────────────────────────────── */}
         <div className="space-y-2">
           {exercises.map((ex, exIndex) => {
+            const isCollapsed = collapsedExercises.has(ex.id);
+            const trackingMode = ex.trackingMode ?? 'reps';
             const isInSuperset = !!ex.supersetGroup;
             const prevEx = exIndex > 0 ? exercises[exIndex - 1] : null;
             const nextEx = exIndex < exercises.length - 1 ? exercises[exIndex + 1] : null;
@@ -555,6 +578,16 @@ export default function WorkoutLogger() {
                   </h3>
                 </div>
                 <div className="flex items-center gap-1">
+                  {/* Reps / Secs toggle */}
+                  <button
+                    onClick={() => toggleTrackingMode(ex.id)}
+                    className={`px-2 py-1 text-[10px] font-bold uppercase tracking-wider rounded-[2px] transition-colors ${
+                      trackingMode === 'seconds' ? 'bg-[#D4FF00] text-[#0a0a0a]' : 'bg-[#1f1f1f] border border-[#2a2a2a] text-[#888888] hover:text-[#D4FF00]'
+                    }`}
+                    title="Toggle reps / seconds tracking"
+                  >
+                    {trackingMode === 'seconds' ? 'Secs' : 'Reps'}
+                  </button>
                   {exIndex < exercises.length - 1 && (
                     <button
                       onClick={() => toggleSuperset(exIndex)}
@@ -571,9 +604,19 @@ export default function WorkoutLogger() {
                   >
                     <Trash2 size={16} />
                   </button>
+                  {/* Collapse toggle */}
+                  <button
+                    onClick={() => toggleCollapse(ex.id)}
+                    className="p-1 text-[#888888] hover:text-[#D4FF00] transition-colors"
+                    title={isCollapsed ? 'Expand' : 'Collapse'}
+                  >
+                    {isCollapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
+                  </button>
                 </div>
               </div>
 
+              {!isCollapsed && (
+                <>
               {/* Sets table */}
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
@@ -581,7 +624,7 @@ export default function WorkoutLogger() {
                     <tr className="text-[#888888] text-xs font-bold uppercase tracking-wider">
                       <th className="px-4 py-2 text-left w-12">Set</th>
                       <th className="px-4 py-2 text-left">Weight</th>
-                      <th className="px-4 py-2 text-left">Reps</th>
+                      <th className="px-4 py-2 text-left">{trackingMode === 'seconds' ? 'Secs' : 'Reps'}</th>
                       <th className="px-4 py-2 text-left">Notes</th>
                       <th className="px-4 py-2 text-center w-12">PB</th>
                       <th className="px-4 py-2 text-center w-12"></th>
@@ -607,15 +650,27 @@ export default function WorkoutLogger() {
                           </div>
                         </td>
                         <td className="px-4 py-2">
-                          <input
-                            type="number"
-                            min={0}
-                            value={set.reps || ''}
-                            onChange={(e) =>
-                              updateSet(ex.id, set.id, 'reps', parseInt(e.target.value) || 0)
-                            }
-                            className="w-16 bg-[#1f1f1f] border border-[#2a2a2a] rounded-[2px] px-2 py-1 text-[#ffffff] text-sm text-center focus:outline-none focus:border-[#D4FF00] transition-colors"
-                          />
+                          {trackingMode === 'seconds' ? (
+                            <input
+                              type="number"
+                              min={0}
+                              value={set.seconds || ''}
+                              onChange={(e) =>
+                                updateSet(ex.id, set.id, 'seconds', parseInt(e.target.value) || 0)
+                              }
+                              className="w-16 bg-[#1f1f1f] border border-[#2a2a2a] rounded-[2px] px-2 py-1 text-[#ffffff] text-sm text-center focus:outline-none focus:border-[#D4FF00] transition-colors"
+                            />
+                          ) : (
+                            <input
+                              type="number"
+                              min={0}
+                              value={set.reps || ''}
+                              onChange={(e) =>
+                                updateSet(ex.id, set.id, 'reps', parseInt(e.target.value) || 0)
+                              }
+                              className="w-16 bg-[#1f1f1f] border border-[#2a2a2a] rounded-[2px] px-2 py-1 text-[#ffffff] text-sm text-center focus:outline-none focus:border-[#D4FF00] transition-colors"
+                            />
+                          )}
                         </td>
                         <td className="px-4 py-2">
                           <input
@@ -658,6 +713,8 @@ export default function WorkoutLogger() {
                   Add Set
                 </button>
               </div>
+                </>
+              )}
                 </div>
               </div>
             );
@@ -666,18 +723,11 @@ export default function WorkoutLogger() {
 
         {/* ── Save buttons ────────────────────────────────────────────── */}
         {exercises.length > 0 && (
-          <div className="mt-8 flex gap-3">
-            <button
-              onClick={() => saveWorkout('draft')}
-              className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-[#1a1a1a] border border-[#2a2a2a] text-[#D4FF00] font-bold uppercase tracking-wider text-sm rounded-[2px] hover:border-[#D4FF00] transition-colors"
-            >
-              <Save size={16} />
-              Save Progress
-            </button>
+          <div className="mt-8">
             <button
               onClick={() => saveWorkout('complete')}
               disabled={!exercises.some((ex) => ex.sets.length > 0)}
-              className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-[#D4FF00] text-[#0a0a0a] font-bold uppercase tracking-wider text-sm rounded-[2px] hover:bg-[#a3c700] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-[#D4FF00] text-[#0a0a0a] font-bold uppercase tracking-wider text-sm rounded-[2px] hover:bg-[#a3c700] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <Save size={16} />
               {editingWorkoutId ? 'Update Workout' : 'Finish & Save'}

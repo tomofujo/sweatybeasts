@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Clock, Play, Pause } from 'lucide-react';
+import { Clock, Play, Pause, RotateCcw } from 'lucide-react';
 
 function formatElapsed(seconds: number): string {
   const h = Math.floor(seconds / 3600);
@@ -40,6 +40,13 @@ export default function SessionTimer() {
         title={running ? 'Pause session timer' : 'Start session timer'}
       >
         {running ? <Pause size={14} /> : <Play size={14} />}
+      </button>
+      <button
+        onClick={() => { setElapsed(0); setRunning(false); }}
+        className="p-1 text-[#888888] hover:text-[#ff4444] transition-colors"
+        title="Reset timer"
+      >
+        <RotateCcw size={14} />
       </button>
     </div>
   );
