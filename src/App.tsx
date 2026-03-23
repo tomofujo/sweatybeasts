@@ -39,7 +39,7 @@ function KeepAlivePages() {
 
 function App() {
   return (
-    <BrowserRouter basename="/sweatybeasts">
+    <BrowserRouter>
       <Routes>
         <Route element={<Layout />}>
           <Route path="*" element={<KeepAlivePages />} />
