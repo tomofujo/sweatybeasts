@@ -450,20 +450,22 @@ export default function WorkoutLogger() {
         )}
 
         {/* ── Page heading ───────────────────────────────────────────── */}
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold uppercase tracking-wider text-[#ffffff]">
-            {editingWorkoutId ? 'Edit Workout' : 'Log Workout'}
-          </h1>
-          <div className="flex items-center gap-3">
-            <SessionTimer />
+        <div className="mb-6">
+          <div className="flex items-center justify-between gap-2">
+            <h1 className="text-2xl font-bold uppercase tracking-wider text-[#ffffff]">
+              {editingWorkoutId ? 'Edit Workout' : 'Log Workout'}
+            </h1>
             <button
               onClick={() => setShowRestTimer((v) => !v)}
-              className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-[2px] transition-colors ${
+              className={`shrink-0 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-[2px] transition-colors ${
                 showRestTimer ? 'bg-[#D4FF00] text-[#0a0a0a]' : 'bg-[#1a1a1a] border border-[#2a2a2a] text-[#888888] hover:text-[#D4FF00]'
               }`}
             >
-              Rest
+              Rest Timer
             </button>
+          </div>
+          <div className="mt-2">
+            <SessionTimer />
           </div>
         </div>
 

@@ -63,20 +63,22 @@ function calcStreak(workouts: Workout[], activities: Activity[]): number {
   return streak;
 }
 
-function calcWeeklyVolume(workouts: Workout[]): number {
-  return workouts
+function calcWeeklyAvgWeight(workouts: Workout[]): number {
+  let totalWeight = 0;
+  let totalSets = 0;
+  workouts
     .filter((w) => isInCurrentWeek(w.date))
-    .reduce((total, w) => {
-      return (
-        total +
-        w.exercises.reduce((exTotal, ex) => {
-          return (
-            exTotal +
-            ex.sets.reduce((setTotal, s) => setTotal + s.weight * s.reps, 0)
-          );
-        }, 0)
-      );
-    }, 0);
+    .forEach((w) => {
+      w.exercises.forEach((ex) => {
+        ex.sets.forEach((s) => {
+          if (s.weight > 0) {
+            totalWeight += s.weight;
+            totalSets++;
+          }
+        });
+      });
+    });
+  return totalSets > 0 ? totalWeight / totalSets : 0;
 }
 
 function calcWeeklyWorkouts(workouts: Workout[], activities: Activity[]): number {
@@ -163,11 +165,13 @@ export default function Dashboard() {
   if (!settings) return null;
 
   const weeklyWorkouts = calcWeeklyWorkouts(workouts, activities);
-  const weeklyVolume = calcWeeklyVolume(workouts);
+  const weeklyAvgWeight = calcWeeklyAvgWeight(workouts);
   const streak = calcStreak(workouts, activities);
   const feed = buildFeed(workouts, activities);
 
-  const displayVolume = Math.round(kgToDisplay(weeklyVolume, settings.weightUnit));
+  const displayAvgWeight = weeklyAvgWeight > 0
+    ? Math.round(kgToDisplay(weeklyAvgWeight, settings.weightUnit) * 10) / 10
+    : 0;
 
   return (
     <PageWrapper>
@@ -197,10 +201,10 @@ export default function Dashboard() {
           <div className="flex flex-col items-center gap-1 rounded-[2px] bg-[#1a1a1a] p-4 border border-[#2a2a2a]">
             <Dumbbell size={18} className="text-[#888888] mb-1" />
             <span className="text-3xl font-bold text-[#D4FF00]">
-              {displayVolume.toLocaleString()}
+              {displayAvgWeight > 0 ? displayAvgWeight.toLocaleString() : '—'}
             </span>
             <span className="text-[11px] font-medium uppercase tracking-widest text-[#888888]">
-              Volume ({settings.weightUnit})
+              Avg weight ({settings.weightUnit})
             </span>
           </div>
 

@@ -1,9 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
-import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import PageWrapper from '../components/PageWrapper';
-import { getWorkouts, getActivities, getPBs, getSettings } from '../utils/storage';
+import { getWorkouts, getActivities, getPBs, getSettings, getExercises } from '../utils/storage';
 import { kgToDisplay } from '../utils/units';
-import type { Workout, Activity, PersonalBest, AppSettings } from '../types';
+import type { Workout, Activity, PersonalBest, AppSettings, Exercise } from '../types';
 
 const MUSCLE_COLOURS = ['#D4FF00', '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', '#ff9ff3'];
 const PIE_COLOURS = ['#D4FF00', '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', '#ff9ff3', '#a3c700', '#dda0dd', '#87ceeb'];
@@ -44,16 +44,19 @@ export default function Progress() {
   const [pbs, setPBs] = useState<PersonalBest[]>([]);
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const [selectedExercise, setSelectedExercise] = useState('');
+  const [allExercises, setAllExercises] = useState<Exercise[]>([]);
 
   useEffect(() => {
     const w = getWorkouts();
     const a = getActivities();
     const p = getPBs();
     const s = getSettings();
+    const ex = getExercises();
     setWorkouts(w);
     setActivities(a);
     setPBs(p);
     setSettings(s);
+    setAllExercises(ex);
   }, []);
 
   const unit = settings?.weightUnit ?? 'kg';
@@ -96,23 +99,27 @@ export default function Progress() {
     }
   }, [exerciseList, selectedExercise]);
 
-  // Per-exercise progress data
+  // Per-exercise progress data (max weight + avg weight per session)
   const exerciseProgressData = useMemo(() => {
     if (!selectedExercise) return [];
-    const points: { date: string; weight: number }[] = [];
+    const points: { date: string; max: number; avg: number }[] = [];
     const sorted = [...workouts].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     for (const w of sorted) {
       for (const ex of w.exercises) {
         if (ex.exerciseId === selectedExercise) {
           let maxWeight = 0;
+          let totalWeight = 0;
+          let weightedSets = 0;
           for (const s of ex.sets) {
             if (s.weight > maxWeight) maxWeight = s.weight;
+            if (s.weight > 0) { totalWeight += s.weight; weightedSets++; }
           }
           if (maxWeight > 0) {
             const d = new Date(w.date);
             points.push({
               date: `${d.getDate()}/${d.getMonth() + 1}`,
-              weight: kgToDisplay(maxWeight, unit),
+              max: kgToDisplay(maxWeight, unit),
+              avg: weightedSets > 0 ? Math.round((kgToDisplay(totalWeight / weightedSets, unit)) * 10) / 10 : 0,
             });
           }
         }
@@ -181,6 +188,64 @@ export default function Progress() {
 
     return { data, groups: topGroups };
   }, [workouts, unit]);
+
+  // Average weight per muscle group per week (last 8 weeks)
+  const avgWeightByMuscleData = useMemo(() => {
+    const exerciseMap = new Map<string, string>();
+    for (const ex of allExercises) {
+      exerciseMap.set(ex.id, ex.muscleGroup);
+    }
+
+    const now = new Date();
+    const eightWeeksAgo = new Date(now.getTime() - 8 * 7 * 24 * 60 * 60 * 1000);
+    const weekMap = new Map<string, Record<string, { total: number; count: number }>>();
+
+    for (let i = 7; i >= 0; i--) {
+      const weekStart = new Date(now.getTime() - i * 7 * 24 * 60 * 60 * 1000);
+      weekMap.set(getWeekStart(weekStart), {});
+    }
+
+    const MUSCLE_GROUPS = ['Chest', 'Back', 'Shoulders', 'Legs', 'Arms', 'Core', 'Full Body'];
+
+    for (const w of workouts) {
+      if (new Date(w.date) < eightWeeksAgo) continue;
+      const wk = getWeekStart(new Date(w.date));
+      if (!weekMap.has(wk)) continue;
+      const entry = weekMap.get(wk)!;
+      for (const ex of w.exercises) {
+        const mg = exerciseMap.get(ex.exerciseId) ?? 'Full Body';
+        if (!entry[mg]) entry[mg] = { total: 0, count: 0 };
+        for (const s of ex.sets) {
+          if (s.weight > 0) {
+            entry[mg].total += s.weight;
+            entry[mg].count += 1;
+          }
+        }
+      }
+    }
+
+    const weeks = Array.from(weekMap.entries())
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .slice(-8);
+
+    // Only include muscle groups that have data
+    const usedGroups = MUSCLE_GROUPS.filter(mg =>
+      weeks.some(([, entry]) => entry[mg]?.count > 0)
+    );
+
+    const data = weeks.map(([, entry], i) => {
+      const row: Record<string, number | string> = { week: `W${i + 1}` };
+      for (const mg of usedGroups) {
+        const d = entry[mg];
+        row[mg] = d && d.count > 0
+          ? Math.round(kgToDisplay(d.total / d.count, unit) * 10) / 10
+          : 0;
+      }
+      return row;
+    });
+
+    return { data, groups: usedGroups };
+  }, [workouts, allExercises, unit]);
 
   // Activity breakdown (last 30 days)
   const activityBreakdown = useMemo(() => {
@@ -293,14 +358,28 @@ export default function Progress() {
                   unit={` ${unit}`}
                 />
                 <Tooltip content={<ChartTooltip unit={` ${unit}`} />} />
+                <Legend
+                  wrapperStyle={{ color: '#888888', fontSize: 11, paddingTop: 8 }}
+                  formatter={(value) => value === 'max' ? 'Max weight' : 'Avg weight'}
+                />
                 <Line
                   type="monotone"
-                  dataKey="weight"
+                  dataKey="max"
                   stroke="#D4FF00"
                   strokeWidth={2}
                   dot={{ fill: '#D4FF00', r: 3 }}
                   activeDot={{ fill: '#D4FF00', r: 5 }}
-                  name={selectedExerciseName}
+                  name="max"
+                />
+                <Line
+                  type="monotone"
+                  dataKey="avg"
+                  stroke="#4ecdc4"
+                  strokeWidth={2}
+                  strokeDasharray="4 2"
+                  dot={{ fill: '#4ecdc4', r: 3 }}
+                  activeDot={{ fill: '#4ecdc4', r: 5 }}
+                  name="avg"
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -358,6 +437,62 @@ export default function Progress() {
                     style={{ backgroundColor: MUSCLE_COLOURS[i % MUSCLE_COLOURS.length] }}
                   />
                   <span className="text-[#888888] text-xs">{group}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Avg Weight per Muscle Group (Last 8 Weeks) */}
+        <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-[2px] p-4">
+          <h2 className="text-white font-bold uppercase tracking-wider text-sm mb-4">
+            Avg Weight by Muscle Group (Last 8 Weeks)
+          </h2>
+          {avgWeightByMuscleData.data.length > 0 && avgWeightByMuscleData.groups.length > 0 ? (
+            <ResponsiveContainer width="100%" height={280}>
+              <LineChart data={avgWeightByMuscleData.data}>
+                <XAxis
+                  dataKey="week"
+                  tick={{ fill: '#888888', fontSize: 12 }}
+                  axisLine={{ stroke: '#2a2a2a' }}
+                  tickLine={{ stroke: '#2a2a2a' }}
+                />
+                <YAxis
+                  tick={{ fill: '#888888', fontSize: 12 }}
+                  axisLine={{ stroke: '#2a2a2a' }}
+                  tickLine={{ stroke: '#2a2a2a' }}
+                  unit={` ${unit}`}
+                />
+                <Tooltip content={<ChartTooltip unit={` ${unit}`} />} />
+                {avgWeightByMuscleData.groups.map((mg, i) => (
+                  <Line
+                    key={mg}
+                    type="monotone"
+                    dataKey={mg}
+                    stroke={MUSCLE_COLOURS[i % MUSCLE_COLOURS.length]}
+                    strokeWidth={2}
+                    dot={{ fill: MUSCLE_COLOURS[i % MUSCLE_COLOURS.length], r: 3 }}
+                    activeDot={{ r: 5 }}
+                    connectNulls
+                    name={mg}
+                  />
+                ))}
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <p className="text-[#888888] text-sm text-center py-8">
+              NO DATA YET. LOG SOME WORKOUTS TO SEE MUSCLE GROUP TRENDS.
+            </p>
+          )}
+          {avgWeightByMuscleData.groups.length > 0 && (
+            <div className="flex flex-wrap gap-3 mt-3">
+              {avgWeightByMuscleData.groups.map((mg, i) => (
+                <div key={mg} className="flex items-center gap-1.5">
+                  <div
+                    className="w-2.5 h-2.5 rounded-[1px]"
+                    style={{ backgroundColor: MUSCLE_COLOURS[i % MUSCLE_COLOURS.length] }}
+                  />
+                  <span className="text-[#888888] text-xs">{mg}</span>
                 </div>
               ))}
             </div>

@@ -270,7 +270,7 @@ export const builtInExercises: Exercise[] = [
 
   {
     id: 'squat',
-    name: 'Squat',
+    name: 'Back Squat',
     muscleGroup: 'Legs',
     secondaryMuscles: ['Core'],
     equipment: 'Barbell',
@@ -1146,6 +1146,70 @@ export const builtInExercises: Exercise[] = [
       'Lower your torso back behind parallel, reaching your arms overhead.',
       'Contract your core and hip flexors explosively to sit up, reaching your hands forward past your feet.',
       'Lower under control and repeat.',
+    ],
+    isCustom: false,
+  },
+  {
+    id: 'weighted-dips',
+    name: 'Weighted Dips',
+    muscleGroup: 'Chest',
+    secondaryMuscles: ['Arms', 'Shoulders'],
+    equipment: 'Bodyweight',
+    description:
+      'A bodyweight dip performed with added resistance via a dip belt, weighted vest, or dumbbell held between the feet. One of the most effective compound pressing movements for chest and triceps mass.',
+    instructions: [
+      'Attach a weight plate or dumbbell to a dip belt (or hold a dumbbell between your feet).',
+      'Grip the parallel bars with arms fully extended and lean forward slightly to bias the chest.',
+      'Lower your body under control until your upper arms are at least parallel to the floor.',
+      'Press back up to the starting position without locking out aggressively.',
+    ],
+    isCustom: false,
+  },
+  {
+    id: 'machine-dips',
+    name: 'Machine Dips',
+    muscleGroup: 'Arms',
+    secondaryMuscles: ['Chest', 'Shoulders'],
+    equipment: 'Machine',
+    description:
+      'A seated dip machine exercise that isolates the triceps by eliminating the balance demands of a parallel-bar dip. The fixed movement path and weight stack allow precise loading.',
+    instructions: [
+      'Adjust the seat so the handles are at shoulder height when seated.',
+      'Grip the handles with an overhand grip and sit upright with your back against the pad.',
+      'Press the handles down by extending your elbows until your arms are straight.',
+      'Slowly return to the start position, maintaining control throughout.',
+    ],
+    isCustom: false,
+  },
+  {
+    id: 'dumbbell-curl',
+    name: 'Dumbbell Curl',
+    muscleGroup: 'Arms',
+    secondaryMuscles: [],
+    equipment: 'Dumbbell',
+    description:
+      'The standard dumbbell bicep curl — a foundational isolation exercise for bicep hypertrophy. Allows each arm to work independently, helping to correct imbalances.',
+    instructions: [
+      'Stand or sit holding a dumbbell in each hand with palms facing forward.',
+      'Keeping your elbows pinned to your sides, curl both dumbbells up towards your shoulders.',
+      'Squeeze your biceps at the top of the movement.',
+      'Lower the dumbbells slowly back to full extension.',
+    ],
+    isCustom: false,
+  },
+  {
+    id: 'glute-drive',
+    name: 'Glute Drive',
+    muscleGroup: 'Legs',
+    secondaryMuscles: ['Core'],
+    equipment: 'Machine',
+    description:
+      'Performed on a dedicated hip-thrust machine (Glute Drive), this exercise isolates the glutes through a loaded horizontal hip extension. The machine provides a consistent resistance curve and is more comfortable than a barbell hip thrust.',
+    instructions: [
+      'Sit in the machine with your upper back against the pad and your feet flat on the footplate at hip width.',
+      'Position the hip pad snugly across your hip crease.',
+      'Drive through your heels and thrust your hips forward until your body is in a straight line.',
+      'Squeeze your glutes hard at the top, then lower under control to the start.',
     ],
     isCustom: false,
   },
