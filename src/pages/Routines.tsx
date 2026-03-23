@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Plus, Trash2, Play, Edit3, X, Save, Dumbbell } from 'lucide-react';
 import PageWrapper from '../components/PageWrapper';
 import ExerciseSVG from '../components/ExerciseSVG';
@@ -20,6 +20,7 @@ interface RoutineExercise {
   exerciseId: string;
   exerciseName: string;
   targetSets: number;
+  targetReps: number;
 }
 
 const STORAGE_KEY = 'sb_routines';
@@ -39,8 +40,56 @@ function saveRoutines(routines: Routine[]): void {
 
 const MUSCLE_GROUPS = ['All', 'Chest', 'Back', 'Shoulders', 'Legs', 'Arms', 'Core', 'Full Body'] as const;
 
+// ── Number input that allows clearing before typing a new value ───────────────
+
+function NumericInput({
+  value,
+  min = 1,
+  max = 99,
+  onChange,
+  className,
+}: {
+  value: number;
+  min?: number;
+  max?: number;
+  onChange: (n: number) => void;
+  className?: string;
+}) {
+  const [raw, setRaw] = useState(String(value));
+
+  // Keep raw in sync if parent changes the value (e.g. on mount / edit load)
+  useEffect(() => {
+    setRaw(String(value));
+  }, [value]);
+
+  return (
+    <input
+      type="text"
+      inputMode="numeric"
+      pattern="[0-9]*"
+      value={raw}
+      className={className}
+      onChange={(e) => {
+        const v = e.target.value.replace(/[^0-9]/g, '');
+        setRaw(v);
+        const n = parseInt(v, 10);
+        if (!isNaN(n) && n >= min && n <= max) onChange(n);
+      }}
+      onBlur={() => {
+        const n = parseInt(raw, 10);
+        const clamped = isNaN(n) ? min : Math.min(Math.max(n, min), max);
+        setRaw(String(clamped));
+        onChange(clamped);
+      }}
+    />
+  );
+}
+
+// ── Component ─────────────────────────────────────────────────────────────────
+
 export default function Routines() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [routines, setRoutines] = useState<Routine[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -56,6 +105,7 @@ export default function Routines() {
   const [muscleFilter, setMuscleFilter] = useState<string>('All');
   const [availableExercises, setAvailableExercises] = useState<Exercise[]>([]);
 
+  // Initial load
   useEffect(() => {
     setRoutines(getRoutines());
     let exercises = getExercises();
@@ -65,6 +115,15 @@ export default function Routines() {
     }
     setAvailableExercises(exercises);
   }, []);
+
+  // Refresh exercise list whenever the /routines tab becomes active
+  // (so newly created exercises show up without a page refresh)
+  useEffect(() => {
+    if (location.pathname === '/routines') {
+      const exercises = getExercises();
+      setAvailableExercises(exercises.length > 0 ? exercises : builtInExercises);
+    }
+  }, [location.pathname]);
 
   const filteredExercises = availableExercises.filter((ex) => {
     const matchesSearch = ex.name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -86,7 +145,10 @@ export default function Routines() {
 
   function openEdit(routine: Routine) {
     setRoutineName(routine.name);
-    setRoutineExercises([...routine.exercises]);
+    // Back-compat: routines saved before targetReps was added default to 10
+    setRoutineExercises(
+      routine.exercises.map((re) => ({ ...re, targetReps: re.targetReps ?? 10 }))
+    );
     setEditingId(routine.id);
     setShowForm(true);
   }
@@ -125,7 +187,7 @@ export default function Routines() {
   function addExerciseToRoutine(exercise: Exercise) {
     setRoutineExercises((prev) => [
       ...prev,
-      { exerciseId: exercise.id, exerciseName: exercise.name, targetSets: 3 },
+      { exerciseId: exercise.id, exerciseName: exercise.name, targetSets: 3, targetReps: 10 },
     ]);
     setShowExerciseSearch(false);
   }
@@ -134,21 +196,20 @@ export default function Routines() {
     setRoutineExercises((prev) => prev.filter((_, i) => i !== index));
   }
 
-  function updateTargetSets(index: number, sets: number) {
+  function updateField(index: number, field: 'targetSets' | 'targetReps', value: number) {
     setRoutineExercises((prev) =>
-      prev.map((ex, i) => (i === index ? { ...ex, targetSets: sets } : ex))
+      prev.map((ex, i) => (i === index ? { ...ex, [field]: value } : ex))
     );
   }
 
   function startRoutine(routine: Routine) {
-    // Build WorkoutExercise array with empty sets based on targetSets
     const workoutExercises: WorkoutExercise[] = routine.exercises.map((re) => ({
       id: crypto.randomUUID(),
       exerciseId: re.exerciseId,
       exerciseName: re.exerciseName,
       sets: Array.from({ length: re.targetSets }, () => ({
         id: crypto.randomUUID(),
-        reps: 0,
+        reps: re.targetReps ?? 10,
         weight: 0,
         notes: '',
         isPB: false,
@@ -210,9 +271,18 @@ export default function Routines() {
 
             {/* Exercise list */}
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-[#888888] mb-2">
-                Exercises
-              </label>
+              <div className="flex items-center gap-4 mb-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-[#888888]">
+                  Exercises
+                </label>
+                {routineExercises.length > 0 && (
+                  <div className="flex items-center gap-3 ml-auto mr-8 text-[10px] font-bold uppercase tracking-wider text-[#555555]">
+                    <span className="w-10 text-center">Sets</span>
+                    <span className="w-10 text-center">Reps</span>
+                  </div>
+                )}
+              </div>
+
               {routineExercises.length === 0 ? (
                 <p className="text-sm text-[#888888] py-4 text-center">No exercises added yet.</p>
               ) : (
@@ -223,17 +293,31 @@ export default function Routines() {
                         <ExerciseSVG exerciseId={re.exerciseId} className="w-full h-full" />
                       </div>
                       <span className="flex-1 text-sm font-bold text-[#ffffff] truncate">{re.exerciseName}</span>
+
+                      {/* Sets */}
                       <div className="flex items-center gap-1 shrink-0">
-                        <input
-                          type="number"
+                        <NumericInput
+                          value={re.targetSets}
                           min={1}
                           max={20}
-                          value={re.targetSets}
-                          onChange={(e) => updateTargetSets(idx, parseInt(e.target.value) || 1)}
-                          className="w-12 bg-[#1f1f1f] border border-[#2a2a2a] rounded-[2px] px-1 py-1 text-[#ffffff] text-sm text-center focus:outline-none focus:border-[#D4FF00]"
+                          onChange={(n) => updateField(idx, 'targetSets', n)}
+                          className="w-10 bg-[#1f1f1f] border border-[#2a2a2a] rounded-[2px] px-1 py-1 text-[#ffffff] text-sm text-center focus:outline-none focus:border-[#D4FF00]"
                         />
-                        <span className="text-[10px] text-[#888888] uppercase">sets</span>
+                        <span className="text-[10px] text-[#888888] uppercase w-5">s</span>
                       </div>
+
+                      {/* Reps */}
+                      <div className="flex items-center gap-1 shrink-0">
+                        <NumericInput
+                          value={re.targetReps}
+                          min={1}
+                          max={999}
+                          onChange={(n) => updateField(idx, 'targetReps', n)}
+                          className="w-10 bg-[#1f1f1f] border border-[#2a2a2a] rounded-[2px] px-1 py-1 text-[#ffffff] text-sm text-center focus:outline-none focus:border-[#D4FF00]"
+                        />
+                        <span className="text-[10px] text-[#888888] uppercase w-5">r</span>
+                      </div>
+
                       <button
                         onClick={() => removeExerciseFromRoutine(idx)}
                         className="text-[#888888] hover:text-[#ff4444] transition-colors p-1"
@@ -325,7 +409,7 @@ export default function Routines() {
                       key={idx}
                       className="text-[10px] font-bold uppercase tracking-wider text-[#888888] bg-[#1f1f1f] border border-[#2a2a2a] px-2 py-1 rounded-[2px]"
                     >
-                      {re.exerciseName} ({re.targetSets}s)
+                      {re.exerciseName} · {re.targetSets}×{re.targetReps ?? 10}
                     </span>
                   ))}
                 </div>

@@ -579,6 +579,147 @@ export const builtInExercises: Exercise[] = [
     isCustom: false,
   },
 
+  // ─── Chest (additional) ──────────────────────────────────────────────────────
+
+  {
+    id: 'pec-deck',
+    name: 'Pec Deck',
+    muscleGroup: 'Chest',
+    secondaryMuscles: ['Shoulders'],
+    equipment: 'Machine',
+    description:
+      'A machine isolation exercise that targets the pectorals through a wide arc. The fixed movement path makes it excellent for beginners and for finishing sets when fatigue limits stabiliser performance.',
+    instructions: [
+      'Sit upright in the pec deck machine and adjust the seat so your arms are parallel to the floor.',
+      'Place your forearms against the pads with elbows bent at roughly 90 degrees.',
+      'Squeeze your chest to bring the pads together in front of you.',
+      'Pause at the peak contraction, then slowly return to the start, allowing a full stretch across the chest.',
+    ],
+    isCustom: false,
+  },
+
+  // ─── Legs (additional) ───────────────────────────────────────────────────────
+
+  {
+    id: 'walking-lunges',
+    name: 'Walking Lunges',
+    muscleGroup: 'Legs',
+    secondaryMuscles: ['Core'],
+    equipment: 'Dumbbell',
+    description:
+      'A unilateral lower-body movement that combines a lunge with forward locomotion. It develops quad and glute strength, balance, and coordination across a full range of motion.',
+    instructions: [
+      'Stand tall with a dumbbell in each hand (or hands on hips for bodyweight), feet together.',
+      'Step forward with one leg and lower your back knee towards the floor, keeping your torso upright.',
+      'Descend until your front thigh is roughly parallel to the floor.',
+      'Drive through your front heel and bring your rear foot forward to stand, immediately stepping into the next lunge.',
+    ],
+    isCustom: false,
+  },
+  {
+    id: 'front-squat',
+    name: 'Front Squat',
+    muscleGroup: 'Legs',
+    secondaryMuscles: ['Core', 'Back'],
+    equipment: 'Barbell',
+    description:
+      'A barbell squat with the bar held across the front deltoids. The front-loaded position demands greater upper-back and core bracing and places more emphasis on the quadriceps than the back squat.',
+    instructions: [
+      'Rest the bar on your front deltoids with your elbows high and parallel to the floor, using either a clean grip or crossed-arm grip.',
+      'Unrack the bar and step back with feet shoulder-width apart, toes turned out slightly.',
+      'Brace your core, keep your elbows up, and squat down until your hip crease drops below your knees.',
+      'Drive through your whole foot to stand, maintaining an upright torso throughout.',
+    ],
+    isCustom: false,
+  },
+
+  // ─── Shoulders (additional) ──────────────────────────────────────────────────
+
+  {
+    id: 'landmine-press',
+    name: 'Landmine Press',
+    muscleGroup: 'Shoulders',
+    secondaryMuscles: ['Chest', 'Arms', 'Core'],
+    equipment: 'Barbell',
+    description:
+      'A single-arm pressing movement using a barbell anchored at one end. The arc of motion places less stress on the shoulder joint than a strict overhead press, making it a great option for those with mobility restrictions.',
+    instructions: [
+      'Anchor one end of a barbell in a landmine attachment or a corner. Stand facing the barbell and grasp the loaded end with one hand at shoulder height.',
+      'Set your feet staggered for stability and brace your core.',
+      'Press the bar upward and slightly forward along its natural arc until your arm is fully extended.',
+      'Lower the bar back to shoulder height under control and complete all repetitions before switching sides.',
+    ],
+    isCustom: false,
+  },
+  {
+    id: 'upright-row',
+    name: 'Upright Row',
+    muscleGroup: 'Shoulders',
+    secondaryMuscles: ['Back', 'Arms'],
+    equipment: 'Barbell',
+    description:
+      'A vertical pulling exercise that develops the lateral deltoids and upper trapezius. Keeping a wider grip reduces internal shoulder rotation and makes the movement more comfortable.',
+    instructions: [
+      'Stand holding a barbell with an overhand grip, hands slightly narrower than shoulder width, arms hanging in front of your thighs.',
+      'Pull the bar upward along your body, leading with your elbows, until the bar reaches chin height.',
+      'Keep your elbows higher than your wrists throughout the movement.',
+      'Lower the bar back to the starting position under control and repeat.',
+    ],
+    isCustom: false,
+  },
+  {
+    id: 'six-way-lat-raise',
+    name: '6-Way Lat Raise',
+    muscleGroup: 'Shoulders',
+    secondaryMuscles: [],
+    equipment: 'Dumbbell',
+    description:
+      'A shoulder circuit combining front raise, lateral raise, and rear-delt raise into one flowing sequence. It hits all three deltoid heads and the rotator cuff in a single set.',
+    instructions: [
+      'Stand holding light dumbbells at your sides.',
+      'Raise both arms directly in front of you to shoulder height (front raise), then lower.',
+      'Raise both arms out to the sides to shoulder height (lateral raise), then lower.',
+      'Hinge slightly at the hips and raise both arms out to the rear to shoulder height (rear raise), then lower.',
+      'That completes one full repetition — maintain smooth, controlled movement throughout.',
+    ],
+    isCustom: false,
+  },
+
+  // ─── Back (additional) ───────────────────────────────────────────────────────
+
+  {
+    id: 'landmine-row',
+    name: 'Landmine Row',
+    muscleGroup: 'Back',
+    secondaryMuscles: ['Arms', 'Core'],
+    equipment: 'Barbell',
+    description:
+      'A supported rowing variation using a landmine setup. The angled pull path is easier on the lower back than a free-weight row and allows a strong lat contraction at the end of the movement.',
+    instructions: [
+      'Anchor one end of a barbell in a landmine attachment. Stand over the bar in a hinged position with a neutral spine, gripping the loaded end with both hands or a single handle.',
+      'Let the bar hang at full arm extension below your chest.',
+      'Row the bar upward towards your lower sternum, driving your elbows back and squeezing your shoulder blades together.',
+      'Lower the bar back to the starting position under control and repeat.',
+    ],
+    isCustom: false,
+  },
+  {
+    id: 'shrugs',
+    name: 'Shrugs',
+    muscleGroup: 'Back',
+    secondaryMuscles: [],
+    equipment: 'Barbell',
+    description:
+      'An isolation exercise for the upper trapezius. Shrugs allow very heavy loading and are one of the few direct movements for developing trap thickness and the "yoke" look.',
+    instructions: [
+      'Stand holding a barbell (or dumbbells) in front of your thighs with an overhand grip, arms fully extended.',
+      'Keeping your arms straight, elevate your shoulders as high as possible towards your ears.',
+      'Hold the peak contraction for a moment, then lower your shoulders back down fully.',
+      'Avoid rolling your shoulders — move them straight up and down.',
+    ],
+    isCustom: false,
+  },
+
   // ─── Full Body ───────────────────────────────────────────────────────────────
 
   {
