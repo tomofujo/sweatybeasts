@@ -120,6 +120,15 @@ export default function WorkoutLogger() {
     initialLoadDone.current = true;
   }, []);
 
+  // ── Refresh exercise list whenever the workout tab becomes active ──────────
+
+  useEffect(() => {
+    if (location.pathname === '/workout') {
+      const exerciseList = getExercises();
+      setAvailableExercises(exerciseList.length > 0 ? exerciseList : builtInExercises);
+    }
+  }, [location.pathname]);
+
   // ── Handle incoming edit/template from History ────────────────────────────
 
   useEffect(() => {
