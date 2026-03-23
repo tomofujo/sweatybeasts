@@ -326,24 +326,24 @@ export default function Routines() {
     <PageWrapper>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <h1 className="text-2xl font-bold uppercase tracking-wider text-[#ffffff]">
             Routines
           </h1>
           <div className="flex items-center gap-2">
-          <button
-            onClick={() => setShowTemplates(true)}
-            className="flex items-center gap-2 bg-[#1a1a1a] border border-[#2a2a2a] text-[#D4FF00] px-4 py-2 rounded-[2px] font-bold uppercase tracking-wider text-sm hover:border-[#D4FF00] transition-colors"
-          >
-            Templates
-          </button>
-          <button
-            onClick={openCreate}
-            className="flex items-center gap-2 bg-[#D4FF00] text-[#0a0a0a] px-4 py-2 rounded-[2px] font-bold uppercase tracking-wider text-sm hover:brightness-110 transition-all"
-          >
-            <Plus size={18} />
-            New Routine
-          </button>
+            <button
+              onClick={() => setShowTemplates(true)}
+              className="flex items-center gap-2 bg-[#1a1a1a] border border-[#2a2a2a] text-[#D4FF00] px-3 py-2 rounded-[2px] font-bold uppercase tracking-wider text-sm hover:border-[#D4FF00] transition-colors"
+            >
+              Templates
+            </button>
+            <button
+              onClick={openCreate}
+              className="flex items-center gap-2 bg-[#D4FF00] text-[#0a0a0a] px-3 py-2 rounded-[2px] font-bold uppercase tracking-wider text-sm hover:brightness-110 transition-all"
+            >
+              <Plus size={18} />
+              New Routine
+            </button>
           </div>
         </div>
 
