@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Calendar, List, Trash2, Copy, Edit3, ChevronLeft, ChevronRight, Dumbbell, Zap, X } from 'lucide-react';
 import PageWrapper from '../components/PageWrapper';
 import { getWorkouts, saveWorkouts, getActivities, saveActivities, getSettings } from '../utils/storage';
@@ -32,6 +32,7 @@ function getWorkoutVolume(w: Workout): number {
 
 export default function History() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [view, setView] = useState<'calendar' | 'list'>('list');
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [activities, setActivities] = useState<Activity[]>([]);
@@ -51,6 +52,16 @@ export default function History() {
     setActivities(getActivities());
     setSettings(getSettings());
   }, []);
+
+  // Open detail modal when navigated here from Dashboard with an openSession ref
+  useEffect(() => {
+    const state = location.state as { openSession?: SessionRef } | null;
+    if (state?.openSession) {
+      setSelectedSession(state.openSession);
+      // Clear the state so navigating away and back doesn't re-open it
+      navigate('/history', { replace: true, state: {} });
+    }
+  }, [location.state, navigate]);
 
   const weightUnit = settings?.weightUnit ?? 'kg';
   const firstDayOfWeek = settings?.firstDayOfWeek ?? 'monday';

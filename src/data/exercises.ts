@@ -720,6 +720,23 @@ export const builtInExercises: Exercise[] = [
     isCustom: false,
   },
 
+  {
+    id: 'hyperextensions',
+    name: 'Hyperextensions',
+    muscleGroup: 'Back',
+    secondaryMuscles: ['Legs', 'Core'],
+    equipment: 'Bodyweight',
+    description:
+      'A lower-back isolation movement performed on a hyperextension bench. It directly targets the erector spinae and is an excellent accessory exercise for building spinal strength to support deadlifts and squats.',
+    instructions: [
+      'Set the hyperextension bench so the pad sits just below your hip crease, allowing your torso to hang freely.',
+      'Cross your arms over your chest or hold a weight plate to your chest for extra resistance.',
+      'With a neutral spine, lower your torso towards the floor until you feel a stretch in your hamstrings.',
+      'Drive your hips into the pad and raise your torso until your body forms a straight line — do not hyperextend past neutral at the top.',
+    ],
+    isCustom: false,
+  },
+
   // ─── Full Body ───────────────────────────────────────────────────────────────
 
   {

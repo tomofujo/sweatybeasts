@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Dumbbell, Zap, Flame, Trophy } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Dumbbell, Zap, Flame, Trophy, ChevronRight } from 'lucide-react';
 import { getWorkouts, getActivities, getSettings } from '../utils/storage';
 import type { Workout, Activity, AppSettings } from '../types';
 import { kgToDisplay } from '../utils/units';
 import PageWrapper from '../components/PageWrapper';
 
 type FeedEntry = {
+  id: string;
   date: string;
   type: 'workout' | 'activity';
   name: string;
@@ -91,6 +92,7 @@ function buildFeed(workouts: Workout[], activities: Activity[]): FeedEntry[] {
   workouts.forEach((w) => {
     const totalSets = w.exercises.reduce((sum, ex) => sum + ex.sets.length, 0);
     entries.push({
+      id: w.id,
       date: w.date,
       type: 'workout',
       name: w.name || 'Workout',
@@ -104,6 +106,7 @@ function buildFeed(workouts: Workout[], activities: Activity[]): FeedEntry[] {
     if (a.duration) parts.push(`${a.duration} min`);
     parts.push(name);
     entries.push({
+      id: a.id,
       date: a.date,
       type: 'activity',
       name,
@@ -136,6 +139,7 @@ function formatDate(dateStr: string): string {
 }
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [settings, setSettings] = useState<AppSettings | null>(null);
@@ -158,10 +162,10 @@ export default function Dashboard() {
   return (
     <PageWrapper>
       <div className="space-y-8 pb-8">
-        {/* Motivational header */}
+        {/* Header */}
         <div className="pt-2 text-center">
           <h1 className="text-3xl font-bold uppercase tracking-[0.15em] text-[#D4FF00] sm:text-4xl">
-            What's your excuse?
+            Sweaty Beasts
           </h1>
           <p className="mt-2 text-sm font-medium uppercase tracking-widest text-[#888888]">
             Results don't sleep
@@ -237,9 +241,14 @@ export default function Dashboard() {
           ) : (
             <div className="space-y-2">
               {feed.map((entry, i) => (
-                <div
+                <button
                   key={`${entry.type}-${entry.date}-${i}`}
-                  className="flex items-center gap-3 rounded-[2px] border border-[#2a2a2a] bg-[#1a1a1a] px-4 py-3"
+                  onClick={() =>
+                    navigate('/history', {
+                      state: { openSession: { type: entry.type, id: entry.id } },
+                    })
+                  }
+                  className="w-full flex items-center gap-3 rounded-[2px] border border-[#2a2a2a] bg-[#1a1a1a] px-4 py-3 hover:border-[#D4FF00]/40 hover:bg-[#1f1f1f] transition-colors text-left"
                 >
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[2px] bg-[#1f1f1f]">
                     {entry.type === 'workout' ? (
@@ -257,7 +266,8 @@ export default function Dashboard() {
                   <span className="shrink-0 text-[11px] font-medium uppercase tracking-wide text-[#888888]">
                     {formatDate(entry.date)}
                   </span>
-                </div>
+                  <ChevronRight size={14} className="shrink-0 text-[#555555]" />
+                </button>
               ))}
             </div>
           )}
