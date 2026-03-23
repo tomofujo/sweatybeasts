@@ -272,8 +272,16 @@ export default function History() {
     if (!selectedData) return null;
 
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.8)' }}>
-        <div className="w-full max-w-lg max-h-[85vh] overflow-y-auto" style={{ backgroundColor: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: '2px' }}>
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        style={{ backgroundColor: 'rgba(0,0,0,0.8)' }}
+        onClick={() => setSelectedSession(null)}
+      >
+        <div
+          className="w-full max-w-lg max-h-[85vh] overflow-y-auto"
+          style={{ backgroundColor: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: '2px' }}
+          onClick={(e) => e.stopPropagation()}
+        >
           {/* Header */}
           <div className="flex items-center justify-between p-4" style={{ borderBottom: '1px solid #2a2a2a' }}>
             <h3 className="font-bold uppercase tracking-wider text-sm" style={{ color: '#ffffff' }}>

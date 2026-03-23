@@ -95,7 +95,6 @@ export default function WorkoutLogger() {
 
   // Active session persistence
   const [showResumeBanner, setShowResumeBanner] = useState(false);
-  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const initialLoadDone = useRef(false);
 
   // ── Load settings + exercises on mount ────────────────────────────────────
@@ -178,33 +177,24 @@ export default function WorkoutLogger() {
     }
   }, [location.state]);
 
-  // ── Auto-save session to localStorage (debounced) ─────────────────────────
+  // ── Auto-save session to localStorage (immediate) ────────────────────────
+  // No debounce — localStorage writes are synchronous and fast. Saving
+  // immediately ensures the session survives a service-worker-triggered
+  // page reload, which can happen with less than 500ms of notice.
 
   useEffect(() => {
     if (!initialLoadDone.current) return;
 
-    if (saveTimerRef.current) {
-      clearTimeout(saveTimerRef.current);
+    if (exercises.length > 0 || sessionName) {
+      saveActiveSession({
+        date,
+        sessionName,
+        exercises,
+        savedAt: new Date().toISOString(),
+      });
+    } else {
+      clearActiveSession();
     }
-
-    saveTimerRef.current = setTimeout(() => {
-      if (exercises.length > 0 || sessionName) {
-        saveActiveSession({
-          date,
-          sessionName,
-          exercises,
-          savedAt: new Date().toISOString(),
-        });
-      } else {
-        clearActiveSession();
-      }
-    }, 500);
-
-    return () => {
-      if (saveTimerRef.current) {
-        clearTimeout(saveTimerRef.current);
-      }
-    };
   }, [date, sessionName, exercises]);
 
   const weightUnit = sessionUnit ?? settings?.weightUnit ?? 'kg';
