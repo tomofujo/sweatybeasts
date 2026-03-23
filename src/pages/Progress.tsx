@@ -293,7 +293,6 @@ export default function Progress() {
     return [...pbs].sort((a, b) => a.exerciseName.localeCompare(b.exerciseName));
   }, [pbs]);
 
-  const selectedExerciseName = exerciseList.find(e => e.id === selectedExercise)?.name ?? '';
 
   return (
     <PageWrapper>
