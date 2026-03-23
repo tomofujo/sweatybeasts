@@ -13,10 +13,23 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
     <title>SWEATY BEASTS</title>
-    <script type="module" crossorigin src="/sweatybeasts/assets/index-DV0Dinzr.js"></script>
+    <script type="module" crossorigin src="/sweatybeasts/assets/index-BvHk0tlN.js"></script>
     <link rel="stylesheet" crossorigin href="/sweatybeasts/assets/index-DVbZgL47.css">
   </head>
   <body>
     <div id="root"></div>
+    <!-- GitHub Pages SPA: restore the path that 404.html encoded into the query string -->
+    <script>
+      (function(l) {
+        if (l.search[1] === '/') {
+          var decoded = l.search.slice(1).split('&').map(function(s) {
+            return s.replace(/~and~/g, '&');
+          }).join('?');
+          window.history.replaceState(null, null,
+            l.pathname.slice(0, -1) + decoded + l.hash
+          );
+        }
+      }(window.location));
+    </script>
   </body>
 </html>
