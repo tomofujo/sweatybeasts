@@ -120,7 +120,7 @@ export default function WorkoutLogger() {
     });
   }, []);
 
-  const handleGripTouchStart = useCallback((e: React.TouchEvent, idx: number) => {
+  const handleGripTouchStart = useCallback((_e: React.TouchEvent, idx: number) => {
     touchDragIdx.current = idx;
     setDragIdx(idx);
   }, []);
