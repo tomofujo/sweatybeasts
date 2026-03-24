@@ -1,4 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
   <rect width="32" height="32" fill="#0a0a0a" rx="4"/>
-  <text x="16" y="22" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="18" font-weight="900" fill="#D4FF00">G</text>
+  <text x="16" y="16" text-anchor="middle" dominant-baseline="central"
+    font-family="Arial Black, sans-serif" font-weight="900" font-size="14"
+    fill="#D4FF00" letter-spacing="-0.5">SB</text>
 </svg>

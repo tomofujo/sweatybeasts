@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Plus, Trash2, Play, Edit3, X, Save, Dumbbell } from 'lucide-react';
 import PageWrapper from '../components/PageWrapper';
@@ -194,6 +194,7 @@ export default function Routines() {
   const [routineExercises, setRoutineExercises] = useState<RoutineExercise[]>([]);
 
   const [showTemplates, setShowTemplates] = useState(false);
+  const formRef = useRef<HTMLDivElement>(null);
 
   // Exercise search
   const [showExerciseSearch, setShowExerciseSearch] = useState(false);
@@ -247,6 +248,7 @@ export default function Routines() {
     );
     setEditingId(routine.id);
     setShowForm(true);
+    setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
   }
 
   function handleSave() {
@@ -303,9 +305,10 @@ export default function Routines() {
       id: crypto.randomUUID(),
       exerciseId: re.exerciseId,
       exerciseName: re.exerciseName,
+      targetReps: re.targetReps ?? 10,
       sets: Array.from({ length: re.targetSets }, () => ({
         id: crypto.randomUUID(),
-        reps: re.targetReps ?? 10,
+        reps: 0,
         weight: 0,
         notes: '',
         isPB: false,
@@ -349,7 +352,7 @@ export default function Routines() {
 
         {/* Routine form */}
         {showForm && (
-          <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-[2px] p-6 space-y-5">
+          <div ref={formRef} className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-[2px] p-6 space-y-5">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold uppercase tracking-wider text-[#ffffff]">
                 {editingId ? 'Edit Routine' : 'Create Routine'}

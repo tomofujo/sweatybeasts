@@ -1,8 +1,5 @@
 import {
-  Swords,
   Shield,
-  Target,
-  Handshake,
   Zap,
   Bike,
   Footprints,
@@ -12,6 +9,8 @@ import {
   Mountain,
   Trophy,
   Plus,
+  Dumbbell,
+  Swords,
   type LucideIcon,
 } from 'lucide-react';
 import type { ActivityType } from '../types';
@@ -28,8 +27,17 @@ export interface ActivityTypeConfig {
 
 export const activityTypeConfigs: ActivityTypeConfig[] = [
   {
-    type: 'Muay Thai',
-    label: 'Muay Thai',
+    type: 'Hyrox',
+    label: 'Hyrox',
+    icon: Dumbbell,
+    hasDistance: true,
+    hasRounds: false,
+    hasPace: false,
+    hasIntervals: false,
+  },
+  {
+    type: 'Combat Sports',
+    label: 'Combat Sports',
     icon: Swords,
     hasDistance: false,
     hasRounds: true,
@@ -40,24 +48,6 @@ export const activityTypeConfigs: ActivityTypeConfig[] = [
     type: 'Martial Arts',
     label: 'Martial Arts',
     icon: Shield,
-    hasDistance: false,
-    hasRounds: true,
-    hasPace: false,
-    hasIntervals: false,
-  },
-  {
-    type: 'Boxing',
-    label: 'Boxing',
-    icon: Target,
-    hasDistance: false,
-    hasRounds: true,
-    hasPace: false,
-    hasIntervals: false,
-  },
-  {
-    type: 'BJJ',
-    label: 'BJJ',
-    icon: Handshake,
     hasDistance: false,
     hasRounds: true,
     hasPace: false,

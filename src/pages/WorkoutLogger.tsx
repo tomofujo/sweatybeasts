@@ -670,7 +670,8 @@ export default function WorkoutLogger() {
                               onChange={(e) =>
                                 updateSet(ex.id, set.id, 'reps', parseInt(e.target.value) || 0)
                               }
-                              className="w-16 bg-[#1f1f1f] border border-[#2a2a2a] rounded-[2px] px-2 py-1 text-[#ffffff] text-sm text-center focus:outline-none focus:border-[#D4FF00] transition-colors"
+                              placeholder={ex.targetReps ? String(ex.targetReps) : ''}
+                              className="w-16 bg-[#1f1f1f] border border-[#2a2a2a] rounded-[2px] px-2 py-1 text-[#ffffff] text-sm text-center focus:outline-none focus:border-[#D4FF00] transition-colors placeholder:text-[#D4FF00]/40"
                             />
                           )}
                         </td>

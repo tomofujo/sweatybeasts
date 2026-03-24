@@ -44,6 +44,7 @@ export interface WorkoutExercise {
   sets: WorkoutSet[];
   supersetGroup?: string; // Exercises sharing the same group ID are a superset
   trackingMode?: 'reps' | 'seconds'; // defaults to 'reps' when absent
+  targetReps?: number; // set when loaded from a routine — shown as ghost placeholder
 }
 
 export interface Workout {
@@ -78,10 +79,9 @@ export interface Activity {
 }
 
 export type ActivityType =
-  | 'Muay Thai'
+  | 'Hyrox'
+  | 'Combat Sports'
   | 'Martial Arts'
-  | 'Boxing'
-  | 'BJJ'
   | 'HIIT'
   | 'Cycling'
   | 'Running'
