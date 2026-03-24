@@ -1,9 +1,71 @@
 import { useState, useEffect } from 'react';
-import { Save, Trash2, AlertTriangle } from 'lucide-react';
+import { Save, Trash2, AlertTriangle, Download } from 'lucide-react';
 import PageWrapper from '../components/PageWrapper';
-import { getSettings, saveSettings, clearAllData } from '../utils/storage';
+import { getSettings, saveSettings, clearAllData, getWorkouts, getActivities } from '../utils/storage';
 import type { AppSettings } from '../types';
 import { DEFAULT_SETTINGS } from '../types';
+
+function downloadCSV(filename: string, rows: string[][]) {
+  const csv = rows
+    .map((r) => r.map((cell) => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(','))
+    .join('\n');
+  const blob = new Blob(['\uFEFF' + csv, ''], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function exportWorkoutsCSV() {
+  const workouts = getWorkouts();
+  const rows: string[][] = [
+    ['Date', 'Session Name', 'Exercise', 'Set', 'Weight (kg)', 'Reps', 'Seconds', 'Notes', 'Personal Best'],
+  ];
+  for (const w of workouts) {
+    for (const ex of w.exercises) {
+      ex.sets.forEach((s, i) => {
+        rows.push([
+          w.date,
+          w.name ?? '',
+          ex.exerciseName,
+          String(i + 1),
+          String(s.weight),
+          String(s.reps),
+          String(s.seconds ?? ''),
+          s.notes,
+          s.isPB ? 'Yes' : '',
+        ]);
+      });
+    }
+  }
+  downloadCSV(`workouts-${new Date().toISOString().split('T')[0]}.csv`, rows);
+}
+
+function exportActivitiesCSV() {
+  const activities = getActivities();
+  const rows: string[][] = [
+    ['Date', 'Time', 'Type', 'Custom Name', 'Duration (min)', 'Distance (km)', 'Avg Pace', 'Rounds', 'Intensity', 'Calories', 'Mood', 'Notes'],
+  ];
+  for (const a of activities) {
+    rows.push([
+      a.date,
+      a.time ?? '',
+      a.type,
+      a.customName ?? '',
+      String(a.duration ?? ''),
+      String(a.distance ?? ''),
+      a.averagePace ?? '',
+      String(a.rounds ?? ''),
+      String(a.intensity ?? ''),
+      String(a.calories ?? ''),
+      String(a.mood ?? ''),
+      a.notes ?? '',
+    ]);
+  }
+  downloadCSV(`activities-${new Date().toISOString().split('T')[0]}.csv`, rows);
+}
 
 export default function SettingsPage() {
   const [settings, setSettingsState] = useState<AppSettings>(DEFAULT_SETTINGS);
@@ -162,6 +224,27 @@ export default function SettingsPage() {
         {/* Data Management */}
         <section className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-[2px] p-4 space-y-4">
           <h2 className="text-sm font-bold uppercase tracking-wider text-[#ffffff]">Data Management</h2>
+
+          {/* Export */}
+          <div className="space-y-2">
+            <p className="text-xs font-bold uppercase tracking-wider text-[#888888]">Export</p>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={exportWorkoutsCSV}
+                className="flex items-center justify-center gap-2 py-2.5 px-3 bg-[#1f1f1f] border border-[#2a2a2a] text-[#ffffff] text-xs font-bold uppercase tracking-wider rounded-[2px] hover:border-[#D4FF00] hover:text-[#D4FF00] transition-colors"
+              >
+                <Download size={14} />
+                Workouts CSV
+              </button>
+              <button
+                onClick={exportActivitiesCSV}
+                className="flex items-center justify-center gap-2 py-2.5 px-3 bg-[#1f1f1f] border border-[#2a2a2a] text-[#ffffff] text-xs font-bold uppercase tracking-wider rounded-[2px] hover:border-[#D4FF00] hover:text-[#D4FF00] transition-colors"
+              >
+                <Download size={14} />
+                Activities CSV
+              </button>
+            </div>
+          </div>
 
           <button
             onClick={() => setShowClearModal(true)}

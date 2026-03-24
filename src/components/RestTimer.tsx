@@ -53,49 +53,59 @@ export default function RestTimer({ onClose }: RestTimerProps) {
   const [remaining, setRemaining] = useState(90);
   const [running, setRunning] = useState(false);
   const [finished, setFinished] = useState(false);
+  // Anchor to wall-clock deadline so background throttling doesn't drift the countdown
+  const deadlineRef = useRef<number | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    if (running && remaining > 0) {
+    if (running) {
+      // Set deadline if not already set (first start; after pause it was cleared)
+      if (!deadlineRef.current) {
+        deadlineRef.current = Date.now() + remaining * 1000;
+      }
       intervalRef.current = setInterval(() => {
-        setRemaining((prev) => {
-          if (prev <= 1) {
-            setRunning(false);
-            setFinished(true);
-            playBeep();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
+        const timeLeft = Math.max(0, Math.round((deadlineRef.current! - Date.now()) / 1000));
+        setRemaining(timeLeft);
+        if (timeLeft <= 0) {
+          clearInterval(intervalRef.current!);
+          deadlineRef.current = null;
+          setRunning(false);
+          setFinished(true);
+          playBeep();
+        }
+      }, 200);
+    } else {
+      if (intervalRef.current) clearInterval(intervalRef.current);
     }
-
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [running, remaining]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [running]); // intentionally exclude remaining – deadline ref handles accuracy
 
   const start = useCallback(() => {
     setFinished(false);
+    deadlineRef.current = null; // will be set fresh in the effect
     setRunning(true);
   }, []);
 
   const pause = useCallback(() => {
     setRunning(false);
+    deadlineRef.current = null; // clear so next start re-anchors from current remaining
   }, []);
 
-  const reset = useCallback(() => {
+  const reset = useCallback((dur?: number) => {
     setRunning(false);
     setFinished(false);
-    setRemaining(duration);
+    deadlineRef.current = null;
+    const d = dur ?? duration;
+    setRemaining(d);
   }, [duration]);
 
   const selectPreset = useCallback((seconds: number) => {
     setDuration(seconds);
-    setRemaining(seconds);
-    setRunning(false);
-    setFinished(false);
-  }, []);
+    reset(seconds);
+  }, [reset]);
 
   const progress = duration > 0 ? ((duration - remaining) / duration) * 100 : 0;
 
@@ -134,7 +144,7 @@ export default function RestTimer({ onClose }: RestTimerProps) {
       {/* Progress bar */}
       <div className="w-full h-1.5 bg-[#2a2a2a] rounded-full mb-3 overflow-hidden">
         <div
-          className="h-full transition-all duration-1000 ease-linear rounded-full"
+          className="h-full transition-all duration-200 ease-linear rounded-full"
           style={{
             width: `${progress}%`,
             backgroundColor: finished ? '#00cc66' : '#D4FF00',
@@ -143,7 +153,7 @@ export default function RestTimer({ onClose }: RestTimerProps) {
       </div>
 
       {/* Time display */}
-      <div className={`text-center text-4xl font-bold font-mono mb-3 ${finished ? 'text-[#00cc66] animate-pulse' : 'text-[#ffffff]'}`}>
+      <div className={`text-center text-4xl font-bold font-mono tabular-nums mb-3 ${finished ? 'text-[#00cc66] animate-pulse' : 'text-[#ffffff]'}`}>
         {formatTime(remaining)}
       </div>
 
@@ -168,7 +178,7 @@ export default function RestTimer({ onClose }: RestTimerProps) {
           </button>
         )}
         <button
-          onClick={reset}
+          onClick={() => reset()}
           className="flex items-center gap-2 px-4 py-2 bg-[#1f1f1f] border border-[#2a2a2a] text-[#888888] font-bold uppercase tracking-wider text-xs rounded-[2px] hover:text-[#ffffff] hover:border-[#888888] transition-colors"
         >
           <RotateCcw size={14} />

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Plus, Trash2, Search, Save, X, Trophy, AlertCircle, Link2, Unlink, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Trash2, Search, Save, X, Trophy, AlertCircle, Link2, Unlink, ChevronDown, ChevronUp, GripVertical } from 'lucide-react';
 import PageWrapper from '../components/PageWrapper';
 import ExerciseSVG from '../components/ExerciseSVG';
 import RestTimer from '../components/RestTimer';
@@ -103,6 +103,49 @@ export default function WorkoutLogger() {
       return next;
     });
   }, []);
+
+  // ── Drag-to-reorder ───────────────────────────────────────────────────────
+  const [dragIdx, setDragIdx] = useState<number | null>(null);
+  const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
+  const touchDragIdx = useRef<number | null>(null);
+  const gripActiveRef = useRef(false);
+
+  const reorderExercises = useCallback((fromIdx: number, toIdx: number) => {
+    if (fromIdx === toIdx) return;
+    setExercises((prev) => {
+      const arr = [...prev];
+      const [item] = arr.splice(fromIdx, 1);
+      arr.splice(toIdx, 0, item);
+      return arr;
+    });
+  }, []);
+
+  const handleGripTouchStart = useCallback((e: React.TouchEvent, idx: number) => {
+    touchDragIdx.current = idx;
+    setDragIdx(idx);
+  }, []);
+
+  const handleGripTouchMove = useCallback((e: React.TouchEvent) => {
+    if (touchDragIdx.current === null) return;
+    const touch = e.touches[0];
+    const els = document.elementsFromPoint(touch.clientX, touch.clientY);
+    for (const el of els) {
+      const attr = el.getAttribute('data-ex-idx');
+      if (attr !== null) {
+        const idx = parseInt(attr);
+        if (!isNaN(idx)) { setDragOverIdx(idx); break; }
+      }
+    }
+  }, []);
+
+  const handleGripTouchEnd = useCallback(() => {
+    if (touchDragIdx.current !== null && dragOverIdx !== null) {
+      reorderExercises(touchDragIdx.current, dragOverIdx);
+    }
+    touchDragIdx.current = null;
+    setDragIdx(null);
+    setDragOverIdx(null);
+  }, [dragOverIdx, reorderExercises]);
 
   // Active session persistence
   const [showResumeBanner, setShowResumeBanner] = useState(false);
@@ -557,7 +600,20 @@ export default function WorkoutLogger() {
             const isLinkedToNext = isInSuperset && nextEx?.supersetGroup === ex.supersetGroup;
 
             return (
-              <div key={ex.id}>
+              <div
+                key={ex.id}
+                data-ex-idx={exIndex}
+                draggable
+                onDragStart={(e) => {
+                  if (!gripActiveRef.current) { e.preventDefault(); return; }
+                  e.dataTransfer.effectAllowed = 'move';
+                  setDragIdx(exIndex);
+                }}
+                onDragOver={(e) => { e.preventDefault(); setDragOverIdx(exIndex); }}
+                onDrop={() => { if (dragIdx !== null) reorderExercises(dragIdx, exIndex); setDragIdx(null); setDragOverIdx(null); }}
+                onDragEnd={() => { gripActiveRef.current = false; setDragIdx(null); setDragOverIdx(null); }}
+                className={`transition-opacity ${dragIdx === exIndex ? 'opacity-40' : 'opacity-100'}`}
+              >
                 {/* Superset label */}
                 {isFirstInSuperset && (
                   <div className="flex items-center gap-2 mb-1 px-2">
@@ -566,16 +622,29 @@ export default function WorkoutLogger() {
                   </div>
                 )}
 
-                <div className={`bg-[#1a1a1a] border rounded-[2px] ${
+                <div className={`bg-[#1a1a1a] border rounded-[2px] transition-colors ${
+                  dragOverIdx === exIndex && dragIdx !== exIndex ? 'border-[#D4FF00]' :
                   isInSuperset ? 'border-[#D4FF00]/30 ml-3' : 'border-[#2a2a2a]'
                 } ${isInSuperset && !isLastInSuperset ? 'border-b-0 rounded-b-none' : ''} ${isInSuperset && !isFirstInSuperset ? 'rounded-t-none' : ''}`}>
               {/* Exercise header */}
-              <div className="flex items-center justify-between px-4 py-3 border-b border-[#2a2a2a]">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-[#1f1f1f] border border-[#2a2a2a] rounded-[2px] overflow-hidden">
+              <div className="flex items-center justify-between px-2 py-3 border-b border-[#2a2a2a]">
+                <div className="flex items-center gap-2">
+                  {/* Drag handle */}
+                  <div
+                    className="touch-none cursor-grab active:cursor-grabbing text-[#444444] hover:text-[#888888] transition-colors flex-shrink-0 px-1 py-2 -ml-1"
+                    onMouseDown={() => { gripActiveRef.current = true; }}
+                    onMouseUp={() => { gripActiveRef.current = false; }}
+                    onTouchStart={(e) => handleGripTouchStart(e, exIndex)}
+                    onTouchMove={handleGripTouchMove}
+                    onTouchEnd={handleGripTouchEnd}
+                    title="Drag to reorder"
+                  >
+                    <GripVertical size={16} />
+                  </div>
+                  <div className="w-10 h-10 bg-[#1f1f1f] border border-[#2a2a2a] rounded-[2px] overflow-hidden flex-shrink-0">
                     <ExerciseSVG exerciseId={ex.exerciseId} className="w-full h-full" />
                   </div>
-                  <h3 className="text-sm font-bold uppercase tracking-wider text-[#ffffff]">
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-[#ffffff] leading-tight">
                     {ex.exerciseName}
                   </h3>
                 </div>

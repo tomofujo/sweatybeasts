@@ -14,24 +14,37 @@ function formatElapsed(seconds: number): string {
 export default function SessionTimer() {
   const [elapsed, setElapsed] = useState(0);
   const [running, setRunning] = useState(false);
+  // Anchor to wall-clock so background throttling can't lose time
+  const anchorRef = useRef<number | null>(null); // Date.now() when running started, adjusted for prior elapsed
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     if (running) {
+      anchorRef.current = Date.now() - elapsed * 1000;
       intervalRef.current = setInterval(() => {
-        setElapsed((prev) => prev + 1);
-      }, 1000);
+        setElapsed(Math.floor((Date.now() - anchorRef.current!) / 1000));
+      }, 500);
+    } else {
+      if (intervalRef.current) clearInterval(intervalRef.current);
     }
-
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [running]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [running]); // intentionally exclude elapsed – only re-anchor when running toggles
+
+  function handleReset() {
+    setElapsed(0);
+    setRunning(false);
+    anchorRef.current = null;
+  }
+
+  const canReset = elapsed > 0 || running;
 
   return (
     <div className="flex items-center gap-2 text-sm">
       <Clock size={14} className="text-[#888888]" />
-      <span className={`font-mono font-bold ${running ? 'text-[#D4FF00]' : 'text-[#888888]'}`}>
+      <span className={`font-mono font-bold tabular-nums ${running ? 'text-[#D4FF00]' : 'text-[#888888]'}`}>
         {formatElapsed(elapsed)}
       </span>
       <button
@@ -42,8 +55,13 @@ export default function SessionTimer() {
         {running ? <Pause size={14} /> : <Play size={14} />}
       </button>
       <button
-        onClick={() => { setElapsed(0); setRunning(false); }}
-        className="p-1 text-[#888888] hover:text-[#ff4444] transition-colors"
+        onClick={handleReset}
+        disabled={!canReset}
+        className={`p-1 transition-colors ${
+          canReset
+            ? 'text-[#aaaaaa] hover:text-[#ff4444] cursor-pointer'
+            : 'text-[#2e2e2e] cursor-default'
+        }`}
         title="Reset timer"
       >
         <RotateCcw size={14} />
