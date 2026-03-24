@@ -8,7 +8,7 @@ import { MOOD_EMOJIS } from '../types';
 import { activityTypeConfigs } from '../data/activityTypes';
 
 export default function ActivityLogger() {
-  const [activityType, setActivityType] = useState<ActivityType>('Running');
+  const [activityType, setActivityType] = useState<ActivityType | null>(null);
   const [customName, setCustomName] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [time, setTime] = useState(new Date().toTimeString().slice(0, 5));
@@ -31,11 +31,11 @@ export default function ActivityLogger() {
     setSettings(getSettings());
   }, []);
 
-  const activeConfig = activityTypeConfigs.find((c) => c.type === activityType);
+  const activeConfig = activityType ? activityTypeConfigs.find((c) => c.type === activityType) : undefined;
   const distanceUnit = settings?.distanceUnit ?? 'km';
 
   function resetForm() {
-    setActivityType('Running');
+    setActivityType(null);
     setCustomName('');
     setDate(new Date().toISOString().split('T')[0]);
     setTime(new Date().toTimeString().slice(0, 5));
@@ -54,6 +54,7 @@ export default function ActivityLogger() {
   }
 
   function handleSave() {
+    if (!activityType) return;
     const activity: Activity = {
       id: crypto.randomUUID(),
       type: activityType,
@@ -363,10 +364,12 @@ export default function ActivityLogger() {
         <button
           type="button"
           onClick={handleSave}
-          disabled={saved}
+          disabled={saved || !activityType}
           className={`w-full py-3 rounded-[2px] font-bold uppercase tracking-wider text-sm flex items-center justify-center gap-2 transition-colors ${
             saved
               ? 'bg-green-600 text-white cursor-default'
+              : !activityType
+              ? 'bg-[#1a1a1a] border border-[#2a2a2a] text-[#555555] cursor-not-allowed'
               : 'bg-[#D4FF00] text-black hover:brightness-110 cursor-pointer'
           }`}
         >

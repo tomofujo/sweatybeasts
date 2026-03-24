@@ -79,19 +79,20 @@ export interface Activity {
 }
 
 export type ActivityType =
-  | 'Hyrox'
+  | 'Climbing'
   | 'Combat Sports'
-  | 'Martial Arts'
-  | 'HIIT'
   | 'Cycling'
+  | 'Football'
+  | 'HIIT'
+  | 'Hyrox'
+  | 'Martial Arts'
+  | 'Other Sport'
+  | 'Pilates'
+  | 'Rowing'
+  | 'Rugby'
   | 'Running'
   | 'Swimming'
-  | 'Yoga / Pilates'
-  | 'Rowing'
-  | 'Climbing'
-  | 'Football'
-  | 'Rugby'
-  | 'Other Sport'
+  | 'Yoga'
   | 'Custom';
 
 export type MoodRating = 1 | 2 | 3 | 4 | 5;
