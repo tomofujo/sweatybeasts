@@ -131,17 +131,29 @@ export default function WorkoutLogger() {
     const touch = e.touches[0];
     const els = document.elementsFromPoint(touch.clientX, touch.clientY);
     for (const el of els) {
-      const attr = el.getAttribute('data-ex-idx');
-      if (attr !== null) {
-        const idx = parseInt(attr);
-        if (!isNaN(idx) && idx !== touchDragIdx.current) {
-          reorderExercises(touchDragIdx.current, idx);
-          touchDragIdx.current = idx; // track new position
-          setDragIdx(idx);
-          setDragOverIdx(idx);
-          break;
-        }
+      // Walk up to find the exercise card (data-ex-idx may be on a parent)
+      let target: Element | null = el;
+      while (target && !target.getAttribute('data-ex-idx')) target = target.parentElement;
+      if (!target) continue;
+      const attr = target.getAttribute('data-ex-idx');
+      if (attr === null) continue;
+      const idx = parseInt(attr);
+      if (isNaN(idx) || idx === touchDragIdx.current) break;
+      // Trigger swap when finger is in the outer 40% (top or bottom) of the card
+      const rect = target.getBoundingClientRect();
+      const relY = touch.clientY - rect.top;
+      const threshold = rect.height * 0.4;
+      const inTopZone = relY < threshold;
+      const inBottomZone = relY > rect.height - threshold;
+      const movingDown = idx > touchDragIdx.current;
+      const movingUp = idx < touchDragIdx.current;
+      if ((movingDown && inBottomZone) || (movingUp && inTopZone)) {
+        reorderExercises(touchDragIdx.current, idx);
+        touchDragIdx.current = idx;
+        setDragIdx(idx);
+        setDragOverIdx(idx);
       }
+      break;
     }
   }, [reorderExercises]);
 
@@ -608,7 +620,7 @@ export default function WorkoutLogger() {
                 key={ex.id}
                 layout
                 layoutId={ex.id}
-                transition={{ duration: 0.18, ease: 'easeInOut' }}
+                transition={{ duration: 0.08, ease: 'easeOut' }}
                 data-ex-idx={exIndex}
                 draggable
                 onDragStart={(e) => {
