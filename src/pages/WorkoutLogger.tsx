@@ -87,6 +87,7 @@ export default function WorkoutLogger() {
   const [saved, setSaved] = useState(false);
   const [savedStatus, setSavedStatus] = useState<'draft' | 'complete'>('complete');
   const [pbAlerts, setPbAlerts] = useState<string[]>([]);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Session-level unit override
   const [sessionUnit, setSessionUnit] = useState<'kg' | 'lbs' | null>(null);
@@ -478,6 +479,20 @@ export default function WorkoutLogger() {
     setDate(new Date().toISOString().slice(0, 10));
   }, [exercises, date, sessionName, weightUnit, editingWorkoutId]);
 
+  // ── Delete workout ────────────────────────────────────────────────────────
+  const handleDeleteWorkout = useCallback(() => {
+    if (editingWorkoutId) {
+      const existing = getWorkouts().filter((w) => w.id !== editingWorkoutId);
+      saveWorkouts(existing);
+    }
+    clearActiveSession();
+    setEditingWorkoutId(null);
+    setExercises([]);
+    setSessionName('');
+    setDate(new Date().toISOString().slice(0, 10));
+    setShowDeleteConfirm(false);
+  }, [editingWorkoutId]);
+
   // ── Render ────────────────────────────────────────────────────────────────
 
   if (!settings) return null;
@@ -834,9 +849,9 @@ export default function WorkoutLogger() {
           })}
         </div>
 
-        {/* ── Save buttons ────────────────────────────────────────────── */}
+        {/* ── Save / Delete buttons ───────────────────────────────────── */}
         {exercises.length > 0 && (
-          <div className="mt-8">
+          <div className="mt-8 space-y-2">
             <button
               onClick={() => saveWorkout('complete')}
               disabled={!exercises.some((ex) => ex.sets.length > 0)}
@@ -845,6 +860,32 @@ export default function WorkoutLogger() {
               <Save size={16} />
               {editingWorkoutId ? 'Update Workout' : 'Finish & Save'}
             </button>
+
+            {/* Delete / confirm */}
+            {showDeleteConfirm ? (
+              <div className="flex gap-2">
+                <button
+                  onClick={handleDeleteWorkout}
+                  className="flex-1 py-2.5 text-xs font-bold uppercase tracking-wider rounded-[2px] bg-[#ff4444]/10 border border-[#ff4444]/60 text-[#ff4444] hover:bg-[#ff4444]/20 transition-colors"
+                >
+                  Confirm Delete
+                </button>
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="flex-1 py-2.5 text-xs font-bold uppercase tracking-wider rounded-[2px] bg-[#1a1a1a] border border-[#2a2a2a] text-[#888888] hover:text-white transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowDeleteConfirm(true)}
+                className="w-full py-2.5 text-xs font-bold uppercase tracking-wider rounded-[2px] bg-[#1a1a1a] border border-[#2a2a2a] text-[#888888] hover:border-[#ff4444] hover:text-[#ff4444] transition-colors flex items-center justify-center gap-2"
+              >
+                <Trash2 size={14} />
+                {editingWorkoutId ? 'Delete Workout' : 'Discard Session'}
+              </button>
+            )}
           </div>
         )}
       </div>

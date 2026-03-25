@@ -67,6 +67,36 @@ function exportActivitiesCSV() {
   downloadCSV(`activities-${new Date().toISOString().split('T')[0]}.csv`, rows);
 }
 
+function exportAllCSV() {
+  const today = new Date().toISOString().split('T')[0];
+  const rows: string[][] = [
+    ['Record Type', 'Date', 'Name / Type', 'Detail', 'Set', 'Weight (kg)', 'Reps', 'Seconds', 'Duration (min)', 'Distance (km)', 'Avg Pace', 'Intensity', 'Calories', 'Mood', 'Notes', 'Personal Best'],
+  ];
+  for (const w of getWorkouts()) {
+    for (const ex of w.exercises) {
+      ex.sets.forEach((s, i) => {
+        rows.push([
+          'Workout', w.date, w.name ?? '', ex.exerciseName,
+          String(i + 1), String(s.weight), String(s.reps), String(s.seconds ?? ''),
+          '', '', '', '', '', '', s.notes, s.isPB ? 'Yes' : '',
+        ]);
+      });
+    }
+  }
+  for (const a of getActivities()) {
+    const label = a.type === 'Custom' && a.customName ? a.customName : a.type;
+    rows.push([
+      'Activity', a.date, label, '',
+      '', '', '', '',
+      String(a.duration ?? ''), String(a.distance ?? ''), a.averagePace ?? '',
+      String(a.intensity ?? ''), String(a.calories ?? ''), String(a.mood ?? ''), a.notes ?? '', '',
+    ]);
+  }
+  const header = rows[0];
+  const data = rows.slice(1).sort((a, b) => (a[1] > b[1] ? -1 : 1));
+  downloadCSV(`all-training-${today}.csv`, [header, ...data]);
+}
+
 export default function SettingsPage() {
   const [settings, setSettingsState] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [showClearModal, setShowClearModal] = useState(false);
@@ -244,6 +274,13 @@ export default function SettingsPage() {
                 Activities CSV
               </button>
             </div>
+            <button
+              onClick={exportAllCSV}
+              className="w-full flex items-center justify-center gap-2 py-2.5 px-3 bg-[#1f1f1f] border border-[#2a2a2a] text-[#ffffff] text-xs font-bold uppercase tracking-wider rounded-[2px] hover:border-[#D4FF00] hover:text-[#D4FF00] transition-colors"
+            >
+              <Download size={14} />
+              All Training Data CSV
+            </button>
           </div>
 
           <button
