@@ -613,7 +613,7 @@ export default function WorkoutLogger() {
                 draggable
                 onDragStart={(e) => {
                   if (!gripActiveRef.current) { e.preventDefault(); return; }
-                  e.dataTransfer.effectAllowed = 'move';
+                  (e as unknown as React.DragEvent).dataTransfer.effectAllowed = 'move';
                   setDragIdx(exIndex);
                 }}
                 onDragOver={(e) => { e.preventDefault(); if (dragIdx !== null && dragIdx !== exIndex) { reorderExercises(dragIdx, exIndex); setDragIdx(exIndex); } setDragOverIdx(exIndex); }}
