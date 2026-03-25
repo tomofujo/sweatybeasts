@@ -110,6 +110,7 @@ export default function WorkoutLogger() {
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
   const touchDragIdx = useRef<number | null>(null);
   const gripActiveRef = useRef(false);
+  const exercisesContainerRef = useRef<HTMLDivElement>(null);
 
   const reorderExercises = useCallback((fromIdx: number, toIdx: number) => {
     if (fromIdx === toIdx) return;
@@ -121,9 +122,28 @@ export default function WorkoutLogger() {
     });
   }, []);
 
-  const handleGripTouchStart = useCallback((_e: React.TouchEvent, idx: number) => {
-    touchDragIdx.current = idx;
-    setDragIdx(idx);
+  // Non-passive touchstart: attached via useEffect so preventDefault actually works
+  // (React JSX touch handlers are passive by default, causing ~100ms scroll-detect delay).
+  // eliminating the ~100ms browser scroll-detection delay.
+  useEffect(() => {
+    const container = exercisesContainerRef.current;
+    if (!container) return;
+    const onTouchStart = (e: TouchEvent) => {
+      let el = e.target as Element | null;
+      while (el && el !== container) {
+        const attr = el.getAttribute('data-grip-idx');
+        if (attr !== null) {
+          e.preventDefault();
+          const idx = parseInt(attr);
+          touchDragIdx.current = idx;
+          setDragIdx(idx);
+          return;
+        }
+        el = el.parentElement;
+      }
+    };
+    container.addEventListener('touchstart', onTouchStart, { passive: false });
+    return () => container.removeEventListener('touchstart', onTouchStart);
   }, []);
 
   const handleGripTouchMove = useCallback((e: React.TouchEvent) => {
@@ -604,7 +624,7 @@ export default function WorkoutLogger() {
         )}
 
         {/* ── Exercise list ───────────────────────────────────────────── */}
-        <div className="space-y-2">
+        <div ref={exercisesContainerRef} className="space-y-2">
           {exercises.map((ex, exIndex) => {
             const isCollapsed = collapsedExercises.has(ex.id);
             const trackingMode = ex.trackingMode ?? 'reps';
@@ -650,12 +670,14 @@ export default function WorkoutLogger() {
                 <div className="flex items-center gap-2">
                   {/* Drag handle */}
                   <div
-                    className="touch-none cursor-grab active:cursor-grabbing text-[#444444] hover:text-[#888888] transition-colors flex-shrink-0 px-1 py-2 -ml-1"
+                    data-grip-idx={exIndex}
+                    className="touch-none cursor-grab active:cursor-grabbing text-[#444444] hover:text-[#888888] transition-colors flex-shrink-0 px-1 py-2 -ml-1 select-none"
+                    style={{ WebkitUserSelect: 'none' }}
                     onMouseDown={() => { gripActiveRef.current = true; }}
                     onMouseUp={() => { gripActiveRef.current = false; }}
-                    onTouchStart={(e) => handleGripTouchStart(e, exIndex)}
                     onTouchMove={handleGripTouchMove}
                     onTouchEnd={handleGripTouchEnd}
+                    onContextMenu={(e) => e.preventDefault()}
                     title="Drag to reorder"
                   >
                     <GripVertical size={16} />
