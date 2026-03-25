@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { motion } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
 import { Plus, Trash2, Search, Save, X, Trophy, AlertCircle, Link2, Unlink, ChevronDown, ChevronUp, GripVertical } from 'lucide-react';
 import PageWrapper from '../components/PageWrapper';
@@ -133,19 +134,22 @@ export default function WorkoutLogger() {
       const attr = el.getAttribute('data-ex-idx');
       if (attr !== null) {
         const idx = parseInt(attr);
-        if (!isNaN(idx)) { setDragOverIdx(idx); break; }
+        if (!isNaN(idx) && idx !== touchDragIdx.current) {
+          reorderExercises(touchDragIdx.current, idx);
+          touchDragIdx.current = idx; // track new position
+          setDragIdx(idx);
+          setDragOverIdx(idx);
+          break;
+        }
       }
     }
-  }, []);
+  }, [reorderExercises]);
 
   const handleGripTouchEnd = useCallback(() => {
-    if (touchDragIdx.current !== null && dragOverIdx !== null) {
-      reorderExercises(touchDragIdx.current, dragOverIdx);
-    }
     touchDragIdx.current = null;
     setDragIdx(null);
     setDragOverIdx(null);
-  }, [dragOverIdx, reorderExercises]);
+  }, []);
 
   // Active session persistence
   const [showResumeBanner, setShowResumeBanner] = useState(false);
@@ -600,8 +604,11 @@ export default function WorkoutLogger() {
             const isLinkedToNext = isInSuperset && nextEx?.supersetGroup === ex.supersetGroup;
 
             return (
-              <div
+              <motion.div
                 key={ex.id}
+                layout
+                layoutId={ex.id}
+                transition={{ duration: 0.18, ease: 'easeInOut' }}
                 data-ex-idx={exIndex}
                 draggable
                 onDragStart={(e) => {
@@ -609,10 +616,10 @@ export default function WorkoutLogger() {
                   e.dataTransfer.effectAllowed = 'move';
                   setDragIdx(exIndex);
                 }}
-                onDragOver={(e) => { e.preventDefault(); setDragOverIdx(exIndex); }}
-                onDrop={() => { if (dragIdx !== null) reorderExercises(dragIdx, exIndex); setDragIdx(null); setDragOverIdx(null); }}
+                onDragOver={(e) => { e.preventDefault(); if (dragIdx !== null && dragIdx !== exIndex) { reorderExercises(dragIdx, exIndex); setDragIdx(exIndex); } setDragOverIdx(exIndex); }}
+                onDrop={() => { setDragIdx(null); setDragOverIdx(null); }}
                 onDragEnd={() => { gripActiveRef.current = false; setDragIdx(null); setDragOverIdx(null); }}
-                className={`transition-opacity ${dragIdx === exIndex ? 'opacity-40' : 'opacity-100'}`}
+                style={{ opacity: dragIdx === exIndex ? 0.5 : 1 }}
               >
                 {/* Superset label */}
                 {isFirstInSuperset && (
@@ -788,7 +795,7 @@ export default function WorkoutLogger() {
                 </>
               )}
                 </div>
-              </div>
+              </motion.div>
             );
           })}
         </div>
