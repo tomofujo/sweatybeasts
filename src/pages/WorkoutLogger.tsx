@@ -109,8 +109,7 @@ export default function WorkoutLogger() {
   // ── Drag-to-reorder ───────────────────────────────────────────────────────
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
-  const touchDragIdx = useRef<number | null>(null);
-  const gripActiveRef = useRef(false);
+  const activeDragIdxRef = useRef<number | null>(null);
   const exercisesContainerRef = useRef<HTMLDivElement>(null);
 
   const reorderExercises = useCallback((fromIdx: number, toIdx: number) => {
@@ -123,66 +122,69 @@ export default function WorkoutLogger() {
     });
   }, []);
 
-  // Non-passive touchstart: attached via useEffect so preventDefault actually works
-  // (React JSX touch handlers are passive by default, causing ~100ms scroll-detect delay).
-  // eliminating the ~100ms browser scroll-detection delay.
+  // Unified pointer-event drag — works for both mouse and touch, non-passive
+  // so we can preventDefault() to suppress scroll during drag.
   useEffect(() => {
     const container = exercisesContainerRef.current;
     if (!container) return;
-    const onTouchStart = (e: TouchEvent) => {
+
+    const getExIdxAt = (x: number, y: number): number | null => {
+      for (const el of document.elementsFromPoint(x, y)) {
+        let t: Element | null = el;
+        while (t && !t.getAttribute('data-ex-idx')) t = t.parentElement;
+        if (t) {
+          const idx = parseInt(t.getAttribute('data-ex-idx')!);
+          if (!isNaN(idx)) return idx;
+        }
+      }
+      return null;
+    };
+
+    const onPointerDown = (e: PointerEvent) => {
       let el = e.target as Element | null;
       while (el && el !== container) {
-        const attr = el.getAttribute('data-grip-idx');
-        if (attr !== null) {
+        if (el.getAttribute('data-grip-idx') !== null) {
           e.preventDefault();
-          const idx = parseInt(attr);
-          touchDragIdx.current = idx;
+          const idx = parseInt(el.getAttribute('data-grip-idx')!);
+          activeDragIdxRef.current = idx;
           setDragIdx(idx);
+          (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
           return;
         }
         el = el.parentElement;
       }
     };
-    container.addEventListener('touchstart', onTouchStart, { passive: false });
-    return () => container.removeEventListener('touchstart', onTouchStart);
-  }, []);
 
-  const handleGripTouchMove = useCallback((e: React.TouchEvent) => {
-    if (touchDragIdx.current === null) return;
-    const touch = e.touches[0];
-    const els = document.elementsFromPoint(touch.clientX, touch.clientY);
-    for (const el of els) {
-      // Walk up to find the exercise card (data-ex-idx may be on a parent)
-      let target: Element | null = el;
-      while (target && !target.getAttribute('data-ex-idx')) target = target.parentElement;
-      if (!target) continue;
-      const attr = target.getAttribute('data-ex-idx');
-      if (attr === null) continue;
-      const idx = parseInt(attr);
-      if (isNaN(idx) || idx === touchDragIdx.current) break;
-      // Trigger swap when finger is in the outer 40% (top or bottom) of the card
-      const rect = target.getBoundingClientRect();
-      const relY = touch.clientY - rect.top;
-      const threshold = rect.height * 0.4;
-      const inTopZone = relY < threshold;
-      const inBottomZone = relY > rect.height - threshold;
-      const movingDown = idx > touchDragIdx.current;
-      const movingUp = idx < touchDragIdx.current;
-      if ((movingDown && inBottomZone) || (movingUp && inTopZone)) {
-        reorderExercises(touchDragIdx.current, idx);
-        touchDragIdx.current = idx;
-        setDragIdx(idx);
-        setDragOverIdx(idx);
+    const onPointerMove = (e: PointerEvent) => {
+      if (activeDragIdxRef.current === null) return;
+      e.preventDefault();
+      const toIdx = getExIdxAt(e.clientX, e.clientY);
+      if (toIdx !== null && toIdx !== activeDragIdxRef.current) {
+        reorderExercises(activeDragIdxRef.current, toIdx);
+        activeDragIdxRef.current = toIdx;
+        setDragIdx(toIdx);
+        setDragOverIdx(toIdx);
       }
-      break;
-    }
-  }, [reorderExercises]);
+    };
 
-  const handleGripTouchEnd = useCallback(() => {
-    touchDragIdx.current = null;
-    setDragIdx(null);
-    setDragOverIdx(null);
-  }, []);
+    const onPointerUp = () => {
+      if (activeDragIdxRef.current === null) return;
+      activeDragIdxRef.current = null;
+      setDragIdx(null);
+      setDragOverIdx(null);
+    };
+
+    container.addEventListener('pointerdown', onPointerDown, { passive: false });
+    container.addEventListener('pointermove', onPointerMove, { passive: false });
+    container.addEventListener('pointerup', onPointerUp);
+    container.addEventListener('pointercancel', onPointerUp);
+    return () => {
+      container.removeEventListener('pointerdown', onPointerDown);
+      container.removeEventListener('pointermove', onPointerMove);
+      container.removeEventListener('pointerup', onPointerUp);
+      container.removeEventListener('pointercancel', onPointerUp);
+    };
+  }, [reorderExercises]);
 
   // Active session persistence
   const [showResumeBanner, setShowResumeBanner] = useState(false);
@@ -657,15 +659,6 @@ export default function WorkoutLogger() {
                 layoutId={ex.id}
                 transition={{ duration: 0.08, ease: 'easeOut' }}
                 data-ex-idx={exIndex}
-                draggable
-                onDragStart={(e) => {
-                  if (!gripActiveRef.current) { e.preventDefault(); return; }
-                  (e as unknown as React.DragEvent).dataTransfer.effectAllowed = 'move';
-                  setDragIdx(exIndex);
-                }}
-                onDragOver={(e) => { e.preventDefault(); if (dragIdx !== null && dragIdx !== exIndex) { reorderExercises(dragIdx, exIndex); setDragIdx(exIndex); } setDragOverIdx(exIndex); }}
-                onDrop={() => { setDragIdx(null); setDragOverIdx(null); }}
-                onDragEnd={() => { gripActiveRef.current = false; setDragIdx(null); setDragOverIdx(null); }}
                 style={{ opacity: dragIdx === exIndex ? 0.5 : 1 }}
               >
                 {/* Superset label */}
@@ -687,11 +680,7 @@ export default function WorkoutLogger() {
                   <div
                     data-grip-idx={exIndex}
                     className="touch-none cursor-grab active:cursor-grabbing text-[#444444] hover:text-[#888888] transition-colors flex-shrink-0 px-1 py-2 -ml-1 select-none"
-                    style={{ WebkitUserSelect: 'none' }}
-                    onMouseDown={() => { gripActiveRef.current = true; }}
-                    onMouseUp={() => { gripActiveRef.current = false; }}
-                    onTouchMove={handleGripTouchMove}
-                    onTouchEnd={handleGripTouchEnd}
+                    style={{ WebkitUserSelect: 'none', userSelect: 'none' }}
                     onContextMenu={(e) => e.preventDefault()}
                     title="Drag to reorder"
                   >
