@@ -122,68 +122,59 @@ export default function WorkoutLogger() {
     });
   }, []);
 
-  // Unified pointer-event drag — works for both mouse and touch, non-passive
-  // so we can preventDefault() to suppress scroll during drag.
-  useEffect(() => {
-    const container = exercisesContainerRef.current;
-    if (!container) return;
+  // Called directly from onPointerDown on the grip handle.
+  // Attaches document-level move/up listeners so events fire even when the
+  // pointer leaves the container, and non-passive touchmove prevents iOS scroll.
+  const handleGripPointerDown = useCallback((e: React.PointerEvent, idx: number) => {
+    e.preventDefault();
+    if (activeDragIdxRef.current !== null) return; // already dragging
+    activeDragIdxRef.current = idx;
+    setDragIdx(idx);
 
-    const getExIdxAt = (x: number, y: number): number | null => {
+    const getExIdxAt = (x: number, y: number): { idx: number; rect: DOMRect } | null => {
       for (const el of document.elementsFromPoint(x, y)) {
         let t: Element | null = el;
         while (t && !t.getAttribute('data-ex-idx')) t = t.parentElement;
         if (t) {
-          const idx = parseInt(t.getAttribute('data-ex-idx')!);
-          if (!isNaN(idx)) return idx;
+          const i = parseInt(t.getAttribute('data-ex-idx')!);
+          if (!isNaN(i)) return { idx: i, rect: t.getBoundingClientRect() };
         }
       }
       return null;
     };
 
-    const onPointerDown = (e: PointerEvent) => {
-      let el = e.target as Element | null;
-      while (el && el !== container) {
-        if (el.getAttribute('data-grip-idx') !== null) {
-          e.preventDefault();
-          const idx = parseInt(el.getAttribute('data-grip-idx')!);
-          activeDragIdxRef.current = idx;
-          setDragIdx(idx);
-          (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-          return;
-        }
-        el = el.parentElement;
+    const move = (x: number, y: number) => {
+      if (activeDragIdxRef.current === null) return;
+      const hit = getExIdxAt(x, y);
+      if (!hit || hit.idx === activeDragIdxRef.current) return;
+      const { relY } = { relY: y - hit.rect.top };
+      const threshold = hit.rect.height * 0.4;
+      if (relY < threshold || relY > hit.rect.height - threshold) {
+        reorderExercises(activeDragIdxRef.current, hit.idx);
+        activeDragIdxRef.current = hit.idx;
+        setDragIdx(hit.idx);
+        setDragOverIdx(hit.idx);
       }
     };
 
-    const onPointerMove = (e: PointerEvent) => {
-      if (activeDragIdxRef.current === null) return;
-      e.preventDefault();
-      const toIdx = getExIdxAt(e.clientX, e.clientY);
-      if (toIdx !== null && toIdx !== activeDragIdxRef.current) {
-        reorderExercises(activeDragIdxRef.current, toIdx);
-        activeDragIdxRef.current = toIdx;
-        setDragIdx(toIdx);
-        setDragOverIdx(toIdx);
-      }
-    };
-
-    const onPointerUp = () => {
-      if (activeDragIdxRef.current === null) return;
+    const onPointerMove = (ev: PointerEvent) => { ev.preventDefault(); move(ev.clientX, ev.clientY); };
+    const onTouchMove  = (ev: TouchEvent)   => { ev.preventDefault(); move(ev.touches[0].clientX, ev.touches[0].clientY); };
+    const cleanup = () => {
       activeDragIdxRef.current = null;
       setDragIdx(null);
       setDragOverIdx(null);
+      document.removeEventListener('pointermove', onPointerMove);
+      document.removeEventListener('pointerup',   cleanup);
+      document.removeEventListener('pointercancel', cleanup);
+      document.removeEventListener('touchmove',   onTouchMove);
+      document.removeEventListener('touchend',    cleanup);
     };
 
-    container.addEventListener('pointerdown', onPointerDown, { passive: false });
-    container.addEventListener('pointermove', onPointerMove, { passive: false });
-    container.addEventListener('pointerup', onPointerUp);
-    container.addEventListener('pointercancel', onPointerUp);
-    return () => {
-      container.removeEventListener('pointerdown', onPointerDown);
-      container.removeEventListener('pointermove', onPointerMove);
-      container.removeEventListener('pointerup', onPointerUp);
-      container.removeEventListener('pointercancel', onPointerUp);
-    };
+    document.addEventListener('pointermove',   onPointerMove, { passive: false });
+    document.addEventListener('pointerup',     cleanup);
+    document.addEventListener('pointercancel', cleanup);
+    document.addEventListener('touchmove',     onTouchMove, { passive: false });
+    document.addEventListener('touchend',      cleanup);
   }, [reorderExercises]);
 
   // Active session persistence
@@ -680,7 +671,8 @@ export default function WorkoutLogger() {
                   <div
                     data-grip-idx={exIndex}
                     className="touch-none cursor-grab active:cursor-grabbing text-[#444444] hover:text-[#888888] transition-colors flex-shrink-0 px-1 py-2 -ml-1 select-none"
-                    style={{ WebkitUserSelect: 'none', userSelect: 'none' }}
+                    style={{ WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'none' }}
+                    onPointerDown={(e) => handleGripPointerDown(e, exIndex)}
                     onContextMenu={(e) => e.preventDefault()}
                     title="Drag to reorder"
                   >
