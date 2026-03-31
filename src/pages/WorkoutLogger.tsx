@@ -709,7 +709,7 @@ export default function WorkoutLogger() {
                   <div className="w-8 h-8 bg-[#1f1f1f] border border-[#2a2a2a] rounded-[2px] overflow-hidden flex-shrink-0">
                     <ExerciseSVG exerciseId={ex.exerciseId} className="w-full h-full" />
                   </div>
-                  <h3 className="text-sm font-bold uppercase tracking-wider text-[#ffffff] leading-tight truncate">
+                  <h3 className="text-xs font-bold uppercase text-[#ffffff] leading-tight truncate">
                     {ex.exerciseName}
                   </h3>
                 </div>
