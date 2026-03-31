@@ -45,6 +45,7 @@ export interface WorkoutExercise {
   supersetGroup?: string; // Exercises sharing the same group ID are a superset
   trackingMode?: 'reps' | 'seconds'; // defaults to 'reps' when absent
   targetReps?: number; // set when loaded from a routine — shown as ghost placeholder
+  weightUnit?: 'kg' | 'lbs'; // per-exercise unit override; if absent falls back to session unit
 }
 
 export interface Workout {

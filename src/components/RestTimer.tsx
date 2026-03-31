@@ -72,6 +72,11 @@ export default function RestTimer({ onClose }: RestTimerProps) {
           setRunning(false);
           setFinished(true);
           playBeep();
+          // Auto-reset after 3 s so it's ready for the next set
+          setTimeout(() => {
+            setFinished(false);
+            setRemaining(duration);
+          }, 3000);
         }
       }, 200);
     } else {

@@ -82,6 +82,11 @@ export default function WorkoutLogger() {
   const [searchQuery, setSearchQuery] = useState('');
   const [muscleFilter, setMuscleFilter] = useState('All');
   const [availableExercises, setAvailableExercises] = useState<Exercise[]>([]);
+  // Inline custom exercise creation inside the search modal
+  const [showCreateCustom, setShowCreateCustom] = useState(false);
+  const [newExName, setNewExName] = useState('');
+  const [newExMuscle, setNewExMuscle] = useState<import('../types').MuscleGroup>('Chest');
+  const [newExEquipment, setNewExEquipment] = useState<import('../types').Equipment>('Barbell');
 
   // Feedback
   const [saved, setSaved] = useState(false);
@@ -306,6 +311,8 @@ export default function WorkoutLogger() {
     };
     setExercises((prev) => [...prev, newExercise]);
     setShowExerciseSearch(false);
+    setShowCreateCustom(false);
+    setNewExName('');
   }, []);
 
   const removeExercise = useCallback((exerciseEntryId: string) => {
@@ -396,6 +403,27 @@ export default function WorkoutLogger() {
     );
   }, []);
 
+  const toggleExerciseUnit = useCallback((exerciseId: string) => {
+    setExercises((prev) =>
+      prev.map((ex) => {
+        if (ex.id !== exerciseId) return ex;
+        const cur = ex.weightUnit ?? weightUnit;
+        const next = cur === 'kg' ? 'lbs' : 'kg';
+        return {
+          ...ex,
+          weightUnit: next,
+          sets: ex.sets.map((s) => ({
+            ...s,
+            weight:
+              next === 'lbs'
+                ? Math.round(s.weight * 2.20462 * 10) / 10
+                : Math.round((s.weight / 2.20462) * 10) / 10,
+          })),
+        };
+      })
+    );
+  }, [weightUnit]);
+
   // ── Save workout ──────────────────────────────────────────────────────────
 
   const saveWorkout = useCallback((status: 'draft' | 'complete') => {
@@ -411,8 +439,8 @@ export default function WorkoutLogger() {
 
     const finalExercises = exercises.map((ex) => {
       const updatedSets = ex.sets.map((s) => {
-        // Convert displayed weight to kg for storage
-        const weightInKg = inputToKg(s.weight, weightUnit);
+        // Convert displayed weight to kg for storage (use per-exercise unit if set)
+        const weightInKg = inputToKg(s.weight, ex.weightUnit ?? weightUnit);
         if (status === 'complete') {
           const { isPB, updatedPBs } = checkPB(ex.exerciseId, ex.exerciseName, weightInKg, s.reps, currentPBs);
           currentPBs = updatedPBs;
@@ -696,6 +724,16 @@ export default function WorkoutLogger() {
                   >
                     {trackingMode === 'seconds' ? 'Secs' : 'Reps'}
                   </button>
+                  {/* Per-exercise weight unit toggle */}
+                  <button
+                    onClick={() => toggleExerciseUnit(ex.id)}
+                    className={`px-2 py-1 text-[10px] font-bold uppercase tracking-wider rounded-[2px] transition-colors ${
+                      ex.weightUnit ? 'bg-[#333300] border border-[#D4FF00]/40 text-[#D4FF00]' : 'bg-[#1f1f1f] border border-[#2a2a2a] text-[#888888] hover:text-[#D4FF00]'
+                    }`}
+                    title="Toggle weight unit for this exercise"
+                  >
+                    {ex.weightUnit ?? weightUnit}
+                  </button>
                   {exIndex < exercises.length - 1 && (
                     <button
                       onClick={() => toggleSuperset(exIndex)}
@@ -754,7 +792,7 @@ export default function WorkoutLogger() {
                               }
                               className="w-20 bg-[#1f1f1f] border border-[#2a2a2a] rounded-[2px] px-2 py-1 text-[#ffffff] text-sm text-center focus:outline-none focus:border-[#D4FF00] transition-colors"
                             />
-                            <span className="text-[#888888] text-xs">{weightUnit}</span>
+                            <span className="text-[#888888] text-xs">{ex.weightUnit ?? weightUnit}</span>
                           </div>
                         </td>
                         <td className="px-4 py-2">
@@ -954,6 +992,83 @@ export default function WorkoutLogger() {
                     </span>
                   </button>
                 ))
+              )}
+            </div>
+
+            {/* Create custom exercise */}
+            <div className="border-t border-[#2a2a2a] p-3">
+              {showCreateCustom ? (
+                <div className="space-y-2">
+                  <input
+                    type="text"
+                    value={newExName}
+                    onChange={(e) => setNewExName(e.target.value)}
+                    placeholder="Exercise name..."
+                    autoFocus
+                    className="w-full bg-[#1f1f1f] border border-[#2a2a2a] rounded-[2px] px-3 py-2 text-sm text-white focus:outline-none focus:border-[#D4FF00]"
+                  />
+                  <div className="grid grid-cols-2 gap-2">
+                    <select
+                      value={newExMuscle}
+                      onChange={(e) => setNewExMuscle(e.target.value as import('../types').MuscleGroup)}
+                      className="bg-[#1f1f1f] border border-[#2a2a2a] rounded-[2px] px-2 py-1.5 text-xs text-white focus:outline-none focus:border-[#D4FF00]"
+                    >
+                      {(['Chest','Back','Shoulders','Legs','Arms','Core','Full Body'] as const).map(m => (
+                        <option key={m} value={m}>{m}</option>
+                      ))}
+                    </select>
+                    <select
+                      value={newExEquipment}
+                      onChange={(e) => setNewExEquipment(e.target.value as import('../types').Equipment)}
+                      className="bg-[#1f1f1f] border border-[#2a2a2a] rounded-[2px] px-2 py-1.5 text-xs text-white focus:outline-none focus:border-[#D4FF00]"
+                    >
+                      {(['Barbell','Dumbbell','Cable','Machine','Bodyweight','Kettlebell','Other'] as const).map(eq => (
+                        <option key={eq} value={eq}>{eq}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      disabled={!newExName.trim()}
+                      onClick={() => {
+                        if (!newExName.trim()) return;
+                        const newEx: Exercise = {
+                          id: `custom-${Date.now()}`,
+                          name: newExName.trim(),
+                          muscleGroup: newExMuscle,
+                          secondaryMuscles: [],
+                          equipment: newExEquipment,
+                          description: '',
+                          instructions: [],
+                          isCustom: true,
+                        };
+                        const existing = getExercises();
+                        saveExercises([...existing, newEx]);
+                        setAvailableExercises((prev) => [...prev, newEx]);
+                        addExercise(newEx);
+                        setShowCreateCustom(false);
+                        setNewExName('');
+                      }}
+                      className="flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-[2px] bg-[#D4FF00] text-[#0a0a0a] hover:bg-[#a3c700] transition-colors disabled:opacity-40"
+                    >
+                      Create & Add
+                    </button>
+                    <button
+                      onClick={() => { setShowCreateCustom(false); setNewExName(''); }}
+                      className="px-3 py-2 text-xs font-bold uppercase tracking-wider rounded-[2px] bg-[#1f1f1f] border border-[#2a2a2a] text-[#888888] hover:text-white transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setShowCreateCustom(true)}
+                  className="w-full py-2 text-xs font-bold uppercase tracking-wider rounded-[2px] bg-[#1f1f1f] border border-[#2a2a2a] text-[#888888] hover:border-[#D4FF00] hover:text-[#D4FF00] transition-colors flex items-center justify-center gap-2"
+                >
+                  <Plus size={12} />
+                  Create Custom Exercise
+                </button>
               )}
             </div>
           </div>
