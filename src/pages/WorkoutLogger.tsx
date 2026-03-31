@@ -693,8 +693,9 @@ export default function WorkoutLogger() {
                   isInSuperset ? 'border-[#D4FF00]/30 ml-3' : 'border-[#2a2a2a]'
                 } ${isInSuperset && !isLastInSuperset ? 'border-b-0 rounded-b-none' : ''} ${isInSuperset && !isFirstInSuperset ? 'rounded-t-none' : ''}`}>
               {/* Exercise header */}
-              <div className="flex items-center justify-between px-2 py-3 border-b border-[#2a2a2a]">
-                <div className="flex items-center gap-2 min-w-0 flex-1">
+              <div className="flex flex-col px-2 pt-2 pb-1 border-b border-[#2a2a2a]">
+                {/* Top row: drag handle + icon + full name */}
+                <div className="flex items-center gap-2 mb-1">
                   {/* Drag handle */}
                   <div
                     data-grip-idx={exIndex}
@@ -709,11 +710,12 @@ export default function WorkoutLogger() {
                   <div className="w-8 h-8 bg-[#1f1f1f] border border-[#2a2a2a] rounded-[2px] overflow-hidden flex-shrink-0">
                     <ExerciseSVG exerciseId={ex.exerciseId} className="w-full h-full" />
                   </div>
-                  <h3 className="text-xs font-bold uppercase text-[#ffffff] leading-tight truncate">
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-[#ffffff] leading-tight">
                     {ex.exerciseName}
                   </h3>
                 </div>
-                <div className="flex items-center gap-1">
+                {/* Bottom row: action buttons */}
+                <div className="flex items-center justify-end gap-1 pb-1">
                   {/* Reps / Secs toggle */}
                   <button
                     onClick={() => toggleTrackingMode(ex.id)}
