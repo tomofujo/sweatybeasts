@@ -694,7 +694,7 @@ export default function WorkoutLogger() {
                 } ${isInSuperset && !isLastInSuperset ? 'border-b-0 rounded-b-none' : ''} ${isInSuperset && !isFirstInSuperset ? 'rounded-t-none' : ''}`}>
               {/* Exercise header */}
               <div className="flex items-center justify-between px-2 py-3 border-b border-[#2a2a2a]">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
                   {/* Drag handle */}
                   <div
                     data-grip-idx={exIndex}
@@ -706,10 +706,10 @@ export default function WorkoutLogger() {
                   >
                     <GripVertical size={16} />
                   </div>
-                  <div className="w-10 h-10 bg-[#1f1f1f] border border-[#2a2a2a] rounded-[2px] overflow-hidden flex-shrink-0">
+                  <div className="w-8 h-8 bg-[#1f1f1f] border border-[#2a2a2a] rounded-[2px] overflow-hidden flex-shrink-0">
                     <ExerciseSVG exerciseId={ex.exerciseId} className="w-full h-full" />
                   </div>
-                  <h3 className="text-sm font-bold uppercase tracking-wider text-[#ffffff] leading-tight">
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-[#ffffff] leading-tight truncate">
                     {ex.exerciseName}
                   </h3>
                 </div>
