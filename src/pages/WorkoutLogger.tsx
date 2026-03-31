@@ -716,26 +716,30 @@ export default function WorkoutLogger() {
                 </div>
                 {/* Bottom row: action buttons */}
                 <div className="flex items-center justify-end gap-1 pb-1">
-                  {/* Reps / Secs toggle */}
-                  <button
-                    onClick={() => toggleTrackingMode(ex.id)}
-                    className={`px-2 py-1 text-[10px] font-bold uppercase tracking-wider rounded-[2px] transition-colors ${
-                      trackingMode === 'seconds' ? 'bg-[#D4FF00] text-[#0a0a0a]' : 'bg-[#1f1f1f] border border-[#2a2a2a] text-[#888888] hover:text-[#D4FF00]'
-                    }`}
-                    title="Toggle reps / seconds tracking"
-                  >
-                    {trackingMode === 'seconds' ? 'Secs' : 'Reps'}
-                  </button>
-                  {/* Per-exercise weight unit toggle */}
-                  <button
-                    onClick={() => toggleExerciseUnit(ex.id)}
-                    className={`px-2 py-1 text-[10px] font-bold uppercase tracking-wider rounded-[2px] transition-colors ${
-                      ex.weightUnit ? 'bg-[#333300] border border-[#D4FF00]/40 text-[#D4FF00]' : 'bg-[#1f1f1f] border border-[#2a2a2a] text-[#888888] hover:text-[#D4FF00]'
-                    }`}
-                    title="Toggle weight unit for this exercise"
-                  >
-                    {ex.weightUnit ?? weightUnit}
-                  </button>
+                  {/* Reps / Secs toggle — only when expanded */}
+                  {!isCollapsed && (
+                    <button
+                      onClick={() => toggleTrackingMode(ex.id)}
+                      className={`px-2 py-1 text-[10px] font-bold uppercase tracking-wider rounded-[2px] transition-colors ${
+                        trackingMode === 'seconds' ? 'bg-[#D4FF00] text-[#0a0a0a]' : 'bg-[#1f1f1f] border border-[#2a2a2a] text-[#888888] hover:text-[#D4FF00]'
+                      }`}
+                      title="Toggle reps / seconds tracking"
+                    >
+                      {trackingMode === 'seconds' ? 'Secs' : 'Reps'}
+                    </button>
+                  )}
+                  {/* Per-exercise weight unit toggle — only when expanded */}
+                  {!isCollapsed && (
+                    <button
+                      onClick={() => toggleExerciseUnit(ex.id)}
+                      className={`px-2 py-1 text-[10px] font-bold uppercase tracking-wider rounded-[2px] transition-colors ${
+                        ex.weightUnit ? 'bg-[#333300] border border-[#D4FF00]/40 text-[#D4FF00]' : 'bg-[#1f1f1f] border border-[#2a2a2a] text-[#888888] hover:text-[#D4FF00]'
+                      }`}
+                      title="Toggle weight unit for this exercise"
+                    >
+                      {ex.weightUnit ?? weightUnit}
+                    </button>
+                  )}
                   {exIndex < exercises.length - 1 && (
                     <button
                       onClick={() => toggleSuperset(exIndex)}
