@@ -775,7 +775,7 @@ export default function WorkoutLogger() {
                       <th className="px-4 py-2 text-left w-12">Set</th>
                       <th className="px-4 py-2 text-left">Weight</th>
                       <th className="px-4 py-2 text-left">{trackingMode === 'seconds' ? 'Secs' : 'Reps'}</th>
-                      <th className="px-4 py-2 text-left">Notes</th>
+                      <th className="px-4 py-2 text-left min-w-[140px]">Notes</th>
                       <th className="px-4 py-2 text-center w-12">PB</th>
                       <th className="px-4 py-2 text-center w-12"></th>
                     </tr>
