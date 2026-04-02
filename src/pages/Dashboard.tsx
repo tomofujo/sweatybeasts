@@ -9,6 +9,7 @@ import PageWrapper from '../components/PageWrapper';
 type FeedEntry = {
   id: string;
   date: string;
+  createdAt: string;
   type: 'workout' | 'activity';
   name: string;
   summary: string;
@@ -96,6 +97,7 @@ function buildFeed(workouts: Workout[], activities: Activity[]): FeedEntry[] {
     entries.push({
       id: w.id,
       date: w.date,
+      createdAt: w.createdAt,
       type: 'workout',
       name: w.name || 'Workout',
       summary: `${w.exercises.length} exercise${w.exercises.length !== 1 ? 's' : ''}, ${totalSets} set${totalSets !== 1 ? 's' : ''}`,
@@ -110,13 +112,18 @@ function buildFeed(workouts: Workout[], activities: Activity[]): FeedEntry[] {
     entries.push({
       id: a.id,
       date: a.date,
+      createdAt: a.createdAt,
       type: 'activity',
       name,
       summary: parts.join(' '),
     });
   });
 
-  entries.sort((a, b) => b.date.localeCompare(a.date));
+  entries.sort((a, b) => {
+    const dateDiff = b.date.localeCompare(a.date);
+    if (dateDiff !== 0) return dateDiff;
+    return b.createdAt.localeCompare(a.createdAt);
+  });
   return entries.slice(0, 5);
 }
 
