@@ -772,19 +772,6 @@ export default function WorkoutLogger() {
               {!isCollapsed && (
                 <>
               {/* Sets table */}
-              {(() => {
-                const pb = pbs.find((p) => p.exerciseId === ex.exerciseId);
-                const displayUnit = ex.weightUnit ?? weightUnit;
-                return pb ? (
-                  <div className="flex items-center gap-2 px-4 py-2 border-b border-[#2a2a2a]">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#888888]">PB</span>
-                    <span className="text-[#D4FF00] text-xs font-bold">
-                      {Math.round(kgToDisplay(pb.heaviestWeight, displayUnit) * 10) / 10}{displayUnit} × {pb.heaviestWeightReps}
-                    </span>
-                    <span className="text-[#444444] text-[10px]">— beat it!</span>
-                  </div>
-                ) : null;
-              })()}
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
@@ -793,7 +780,17 @@ export default function WorkoutLogger() {
                       <th className="px-4 py-2 text-left">Weight</th>
                       <th className="px-4 py-2 text-left">{trackingMode === 'seconds' ? 'Secs' : 'Reps'}</th>
                       <th className="px-4 py-2 text-left min-w-[140px]">Notes</th>
-                      <th className="px-4 py-2 text-center w-12">PB</th>
+                      <th className="px-4 py-2 text-center">
+                        {(() => {
+                          const pb = pbs.find((p) => p.exerciseId === ex.exerciseId);
+                          const displayUnit = ex.weightUnit ?? weightUnit;
+                          return pb ? (
+                            <span className="text-[#D4FF00]">
+                              {Math.round(kgToDisplay(pb.heaviestWeight, displayUnit) * 10) / 10}{displayUnit} × {pb.heaviestWeightReps}
+                            </span>
+                          ) : 'PB';
+                        })()}
+                      </th>
                       <th className="px-4 py-2 text-center w-12"></th>
                     </tr>
                   </thead>
