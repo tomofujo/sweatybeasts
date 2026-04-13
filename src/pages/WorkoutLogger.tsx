@@ -7,7 +7,7 @@ import ExerciseSVG from '../components/ExerciseSVG';
 import RestTimer from '../components/RestTimer';
 import SessionTimer from '../components/SessionTimer';
 import { getExercises, saveExercises, getWorkouts, saveWorkouts, getPBs, savePBs, getActiveSession, saveActiveSession, clearActiveSession } from '../utils/storage';
-import { inputToKg } from '../utils/units';
+import { inputToKg, kgToDisplay } from '../utils/units';
 import { getSettings } from '../utils/storage';
 import type { Exercise, Workout, WorkoutExercise, WorkoutSet, PersonalBest, AppSettings } from '../types';
 import { builtInExercises } from '../data/exercises';
@@ -102,6 +102,9 @@ export default function WorkoutLogger() {
 
   // Collapsed exercises
   const [collapsedExercises, setCollapsedExercises] = useState<Set<string>>(new Set());
+
+  // Personal bests (loaded once for display during the session)
+  const [pbs, setPbs] = useState<PersonalBest[]>(() => getPBs());
   const toggleCollapse = useCallback((id: string) => {
     setCollapsedExercises((prev) => {
       const next = new Set(prev);
@@ -459,6 +462,7 @@ export default function WorkoutLogger() {
     // Save PBs (only for complete)
     if (status === 'complete') {
       savePBs(currentPBs);
+      setPbs(currentPBs);
     }
 
     // Build workout object
@@ -768,6 +772,19 @@ export default function WorkoutLogger() {
               {!isCollapsed && (
                 <>
               {/* Sets table */}
+              {(() => {
+                const pb = pbs.find((p) => p.exerciseId === ex.exerciseId);
+                const displayUnit = ex.weightUnit ?? weightUnit;
+                return pb ? (
+                  <div className="flex items-center gap-2 px-4 py-2 border-b border-[#2a2a2a]">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#888888]">PB</span>
+                    <span className="text-[#D4FF00] text-xs font-bold">
+                      {Math.round(kgToDisplay(pb.heaviestWeight, displayUnit) * 10) / 10}{displayUnit} × {pb.heaviestWeightReps}
+                    </span>
+                    <span className="text-[#444444] text-[10px]">— beat it!</span>
+                  </div>
+                ) : null;
+              })()}
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
