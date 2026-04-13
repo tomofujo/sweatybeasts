@@ -780,17 +780,7 @@ export default function WorkoutLogger() {
                       <th className="px-4 py-2 text-left">Weight</th>
                       <th className="px-4 py-2 text-left">{trackingMode === 'seconds' ? 'Secs' : 'Reps'}</th>
                       <th className="px-4 py-2 text-left min-w-[140px]">Notes</th>
-                      <th className="px-4 py-2 text-center">
-                        {(() => {
-                          const pb = pbs.find((p) => p.exerciseId === ex.exerciseId);
-                          const displayUnit = ex.weightUnit ?? weightUnit;
-                          return pb ? (
-                            <span className="text-[#D4FF00]">
-                              {Math.round(kgToDisplay(pb.heaviestWeight, displayUnit) * 10) / 10}{displayUnit} × {pb.heaviestWeightReps}
-                            </span>
-                          ) : 'PB';
-                        })()}
-                      </th>
+                      <th className="px-4 py-2 text-center w-24">PB</th>
                       <th className="px-4 py-2 text-center w-12"></th>
                     </tr>
                   </thead>
@@ -847,11 +837,19 @@ export default function WorkoutLogger() {
                           />
                         </td>
                         <td className="px-4 py-2 text-center">
-                          {set.isPB && (
+                          {set.isPB ? (
                             <span className="inline-block bg-[#D4FF00]/15 text-[#D4FF00] text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-[2px]">
-                              PB
+                              NEW PB!
                             </span>
-                          )}
+                          ) : (() => {
+                            const pb = pbs.find((p) => p.exerciseId === ex.exerciseId);
+                            const displayUnit = ex.weightUnit ?? weightUnit;
+                            return pb ? (
+                              <span className="text-[#888888] text-xs">
+                                {Math.round(kgToDisplay(pb.heaviestWeight, displayUnit) * 10) / 10}{displayUnit} × {pb.heaviestWeightReps}
+                              </span>
+                            ) : null;
+                          })()}
                         </td>
                         <td className="px-4 py-2 text-center">
                           <button
