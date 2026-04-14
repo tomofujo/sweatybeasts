@@ -780,7 +780,6 @@ export default function WorkoutLogger() {
                       <th className="px-4 py-2 text-left">Weight</th>
                       <th className="px-4 py-2 text-left">{trackingMode === 'seconds' ? 'Secs' : 'Reps'}</th>
                       <th className="px-4 py-2 text-left min-w-[140px]">Notes</th>
-                      <th className="px-4 py-2 text-center w-24">PB</th>
                       <th className="px-4 py-2 text-center w-12"></th>
                     </tr>
                   </thead>
@@ -815,16 +814,29 @@ export default function WorkoutLogger() {
                               className="w-16 bg-[#1f1f1f] border border-[#2a2a2a] rounded-[2px] px-2 py-1 text-[#ffffff] text-sm text-center focus:outline-none focus:border-[#D4FF00] transition-colors"
                             />
                           ) : (
-                            <input
-                              type="number"
-                              min={0}
-                              value={set.reps || ''}
-                              onChange={(e) =>
-                                updateSet(ex.id, set.id, 'reps', parseInt(e.target.value) || 0)
-                              }
-                              placeholder={ex.targetReps ? String(ex.targetReps) : ''}
-                              className="w-16 bg-[#1f1f1f] border border-[#2a2a2a] rounded-[2px] px-2 py-1 text-[#ffffff] text-sm text-center focus:outline-none focus:border-[#D4FF00] transition-colors placeholder:text-[#D4FF00]/40"
-                            />
+                            <div className="flex flex-col gap-0.5">
+                              <input
+                                type="number"
+                                min={0}
+                                value={set.reps || ''}
+                                onChange={(e) =>
+                                  updateSet(ex.id, set.id, 'reps', parseInt(e.target.value) || 0)
+                                }
+                                placeholder={ex.targetReps ? String(ex.targetReps) : ''}
+                                className="w-16 bg-[#1f1f1f] border border-[#2a2a2a] rounded-[2px] px-2 py-1 text-[#ffffff] text-sm text-center focus:outline-none focus:border-[#D4FF00] transition-colors placeholder:text-[#D4FF00]/40"
+                              />
+                              {set.isPB ? (
+                                <span className="text-[#D4FF00] text-[9px] font-bold uppercase tracking-wider text-center">NEW PB!</span>
+                              ) : (() => {
+                                const pb = pbs.find((p) => p.exerciseId === ex.exerciseId);
+                                const displayUnit = ex.weightUnit ?? weightUnit;
+                                return pb ? (
+                                  <span className="text-[#888888] text-[9px] text-center whitespace-nowrap">
+                                    {Math.round(kgToDisplay(pb.heaviestWeight, displayUnit) * 10) / 10}{displayUnit}×{pb.heaviestWeightReps}
+                                  </span>
+                                ) : null;
+                              })()}
+                            </div>
                           )}
                         </td>
                         <td className="px-4 py-2">
@@ -835,21 +847,6 @@ export default function WorkoutLogger() {
                             placeholder="Optional"
                             className="w-full bg-[#1f1f1f] border border-[#2a2a2a] rounded-[2px] px-2 py-1 text-[#ffffff] text-sm placeholder:text-[#888888]/40 focus:outline-none focus:border-[#D4FF00] transition-colors"
                           />
-                        </td>
-                        <td className="px-4 py-2 text-center">
-                          {set.isPB ? (
-                            <span className="inline-block bg-[#D4FF00]/15 text-[#D4FF00] text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-[2px]">
-                              NEW PB!
-                            </span>
-                          ) : (() => {
-                            const pb = pbs.find((p) => p.exerciseId === ex.exerciseId);
-                            const displayUnit = ex.weightUnit ?? weightUnit;
-                            return pb ? (
-                              <span className="text-[#888888] text-xs">
-                                {Math.round(kgToDisplay(pb.heaviestWeight, displayUnit) * 10) / 10}{displayUnit} × {pb.heaviestWeightReps}
-                              </span>
-                            ) : null;
-                          })()}
                         </td>
                         <td className="px-4 py-2 text-center">
                           <button
