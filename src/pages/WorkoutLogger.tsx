@@ -714,7 +714,7 @@ export default function WorkoutLogger() {
                     <GripVertical size={16} />
                   </div>
                   <div className="w-8 h-8 bg-[#1f1f1f] border border-[#2a2a2a] rounded-[2px] overflow-hidden flex-shrink-0">
-                    <ExerciseSVG exerciseId={ex.exerciseId} className="w-full h-full" />
+                    <ExerciseSVG exerciseId={ex.exerciseId} exerciseName={ex.exerciseName} className="w-full h-full" />
                   </div>
                   <h3 className={`text-[11px] font-bold uppercase leading-tight truncate transition-colors ${isExComplete ? 'text-[#555555]' : 'text-[#ffffff]'}`}>
                     {ex.exerciseName}
@@ -995,7 +995,7 @@ export default function WorkoutLogger() {
                     className="w-full text-left px-4 py-3 border-b border-[#2a2a2a] hover:bg-[#1f1f1f] transition-colors flex items-center gap-3"
                   >
                     <div className="w-10 h-10 bg-[#1f1f1f] border border-[#2a2a2a] rounded-[2px] overflow-hidden shrink-0">
-                      <ExerciseSVG exerciseId={exercise.id} className="w-full h-full" />
+                      <ExerciseSVG exerciseId={exercise.id} exerciseName={exercise.name} className="w-full h-full" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-bold text-[#ffffff] truncate">{exercise.name}</p>
