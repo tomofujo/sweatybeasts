@@ -674,6 +674,9 @@ export default function WorkoutLogger() {
             const isFirstInSuperset = isInSuperset && (!prevEx || prevEx.supersetGroup !== ex.supersetGroup);
             const isLastInSuperset = isInSuperset && (!nextEx || nextEx.supersetGroup !== ex.supersetGroup);
             const isLinkedToNext = isInSuperset && nextEx?.supersetGroup === ex.supersetGroup;
+            const isExComplete = ex.sets.length > 0 && ex.sets.every((s) =>
+              s.weight > 0 && (trackingMode === 'seconds' ? (s.seconds ?? 0) > 0 : s.reps > 0)
+            );
 
             return (
               <motion.div
@@ -697,7 +700,7 @@ export default function WorkoutLogger() {
                   isInSuperset ? 'border-[#D4FF00]/30 ml-3' : 'border-[#2a2a2a]'
                 } ${isInSuperset && !isLastInSuperset ? 'border-b-0 rounded-b-none' : ''} ${isInSuperset && !isFirstInSuperset ? 'rounded-t-none' : ''}`}>
               {/* Exercise header */}
-              <div className="flex items-center justify-between px-2 py-3 border-b border-[#2a2a2a]">
+              <div className={`flex items-center justify-between px-2 py-3 border-b transition-colors ${isExComplete ? 'border-[#2a2a2a] bg-transparent' : 'border-[#D4FF00]/30 bg-[#D4FF00]/5'}`}>
                 <div className="flex items-center gap-2 min-w-0 flex-1">
                   {/* Drag handle */}
                   <div
@@ -713,7 +716,7 @@ export default function WorkoutLogger() {
                   <div className="w-8 h-8 bg-[#1f1f1f] border border-[#2a2a2a] rounded-[2px] overflow-hidden flex-shrink-0">
                     <ExerciseSVG exerciseId={ex.exerciseId} className="w-full h-full" />
                   </div>
-                  <h3 className="text-[11px] font-bold uppercase text-[#ffffff] leading-tight truncate">
+                  <h3 className={`text-[11px] font-bold uppercase leading-tight truncate transition-colors ${isExComplete ? 'text-[#555555]' : 'text-[#ffffff]'}`}>
                     {ex.exerciseName}
                   </h3>
                 </div>
