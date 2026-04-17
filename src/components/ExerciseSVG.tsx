@@ -30,12 +30,10 @@ const COLORS: Record<MovementType, { bg: string; text: string }> = {
 };
 
 function abbreviate(name: string): string {
-  const words = name.trim().split(/\s+/);
-  if (words.length === 1) return name.slice(0, 4).toUpperCase();
-  // Up to 3 words, first 2–3 chars each
-  return words
-    .slice(0, 3)
-    .map((w) => w.slice(0, words.length > 2 ? 2 : 3))
+  return name
+    .trim()
+    .split(/\s+/)
+    .map((w) => w[0])
     .join('')
     .toUpperCase();
 }
