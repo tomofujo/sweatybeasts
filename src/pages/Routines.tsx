@@ -239,6 +239,10 @@ export default function Routines() {
   const [searchQuery, setSearchQuery] = useState('');
   const [muscleFilter, setMuscleFilter] = useState<string>('All');
   const [availableExercises, setAvailableExercises] = useState<Exercise[]>([]);
+  const [showCreateCustom, setShowCreateCustom] = useState(false);
+  const [newExName, setNewExName] = useState('');
+  const [newExMuscle, setNewExMuscle] = useState<import('../types').MuscleGroup>('Chest');
+  const [newExEquipment, setNewExEquipment] = useState<import('../types').Equipment>('Barbell');
 
   useEffect(() => {
     setRoutines(getRoutines());
@@ -469,7 +473,7 @@ export default function Routines() {
                   ))}
                 </div>
               )}
-              <button onClick={() => { setSearchQuery(''); setMuscleFilter('All'); setShowExerciseSearch(true); }} className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#D4FF00] hover:brightness-110 transition-all">
+              <button onClick={() => { setSearchQuery(''); setMuscleFilter('All'); setShowCreateCustom(false); setNewExName(''); setShowExerciseSearch(true); }} className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#D4FF00] hover:brightness-110 transition-all">
                 <Plus size={14} /> Add Exercise
               </button>
             </div>
@@ -650,6 +654,82 @@ export default function Routines() {
                       </div>
                     </button>
                   ))
+                )}
+              </div>
+              {/* Create custom exercise */}
+              <div className="border-t border-[#2a2a2a] p-3">
+                {showCreateCustom ? (
+                  <div className="space-y-2">
+                    <input
+                      type="text"
+                      value={newExName}
+                      onChange={(e) => setNewExName(e.target.value)}
+                      placeholder="Exercise name..."
+                      autoFocus
+                      className="w-full bg-[#1f1f1f] border border-[#2a2a2a] rounded-[2px] px-3 py-2 text-sm text-white focus:outline-none focus:border-[#D4FF00]"
+                    />
+                    <div className="grid grid-cols-2 gap-2">
+                      <select
+                        value={newExMuscle}
+                        onChange={(e) => setNewExMuscle(e.target.value as import('../types').MuscleGroup)}
+                        className="bg-[#1f1f1f] border border-[#2a2a2a] rounded-[2px] px-2 py-1.5 text-xs text-white focus:outline-none focus:border-[#D4FF00]"
+                      >
+                        {(['Chest','Back','Shoulders','Legs','Arms','Core','Full Body'] as const).map(m => (
+                          <option key={m} value={m}>{m}</option>
+                        ))}
+                      </select>
+                      <select
+                        value={newExEquipment}
+                        onChange={(e) => setNewExEquipment(e.target.value as import('../types').Equipment)}
+                        className="bg-[#1f1f1f] border border-[#2a2a2a] rounded-[2px] px-2 py-1.5 text-xs text-white focus:outline-none focus:border-[#D4FF00]"
+                      >
+                        {(['Barbell','Dumbbell','Cable','Machine','Bodyweight','Kettlebell','Other'] as const).map(eq => (
+                          <option key={eq} value={eq}>{eq}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        disabled={!newExName.trim()}
+                        onClick={() => {
+                          if (!newExName.trim()) return;
+                          const newEx: Exercise = {
+                            id: `custom-${Date.now()}`,
+                            name: newExName.trim(),
+                            muscleGroup: newExMuscle,
+                            secondaryMuscles: [],
+                            equipment: newExEquipment,
+                            description: '',
+                            instructions: [],
+                            isCustom: true,
+                          };
+                          const existing = getExercises();
+                          saveExercises([...existing, newEx]);
+                          setAvailableExercises((prev) => [...prev, newEx]);
+                          addExerciseToRoutine(newEx);
+                          setShowCreateCustom(false);
+                          setNewExName('');
+                        }}
+                        className="flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-[2px] bg-[#D4FF00] text-[#0a0a0a] hover:brightness-110 transition-all disabled:opacity-40"
+                      >
+                        Create & Add
+                      </button>
+                      <button
+                        onClick={() => { setShowCreateCustom(false); setNewExName(''); }}
+                        className="px-3 py-2 text-xs font-bold uppercase tracking-wider rounded-[2px] bg-[#1f1f1f] border border-[#2a2a2a] text-[#888888] hover:text-white transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setShowCreateCustom(true)}
+                    className="w-full py-2 text-xs font-bold uppercase tracking-wider rounded-[2px] bg-[#1f1f1f] border border-[#2a2a2a] text-[#888888] hover:border-[#D4FF00] hover:text-[#D4FF00] transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Plus size={12} />
+                    Create Custom Exercise
+                  </button>
                 )}
               </div>
             </div>
