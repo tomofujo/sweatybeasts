@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
 import { Plus, Trash2, Search, Save, X, Trophy, AlertCircle, Link2, Unlink, ChevronDown, ChevronUp, GripVertical } from 'lucide-react';
@@ -103,8 +103,11 @@ export default function WorkoutLogger() {
   // Collapsed exercises
   const [collapsedExercises, setCollapsedExercises] = useState<Set<string>>(new Set());
 
-  // Personal bests (loaded once for display during the session)
-  const [pbs, setPbs] = useState<PersonalBest[]>(() => getPBs());
+  // Personal bests (reference for detection logic — not rendered directly)
+  const [, setPbs] = useState<PersonalBest[]>(() => getPBs());
+
+  // Saved workouts for last-session reference
+  const [savedWorkouts, setSavedWorkouts] = useState<Workout[]>(() => getWorkouts());
   const toggleCollapse = useCallback((id: string) => {
     setCollapsedExercises((prev) => {
       const next = new Set(prev);
@@ -291,6 +294,22 @@ export default function WorkoutLogger() {
 
   const weightUnit = sessionUnit ?? settings?.weightUnit ?? 'kg';
 
+  // Map exerciseId → most-recent completed session data for quick reference
+  const lastSessionMap = useMemo(() => {
+    const map: Record<string, { date: string; sets: WorkoutSet[]; weightUnit?: 'kg' | 'lbs' }> = {};
+    const sorted = [...savedWorkouts]
+      .filter((w) => w.status === 'complete' && w.id !== editingWorkoutId)
+      .sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt));
+    for (const w of sorted) {
+      for (const ex of w.exercises) {
+        if (!map[ex.exerciseId] && ex.sets.length > 0) {
+          map[ex.exerciseId] = { date: w.date, sets: ex.sets, weightUnit: ex.weightUnit };
+        }
+      }
+    }
+    return map;
+  }, [savedWorkouts, editingWorkoutId]);
+
   // ── Exercise search helpers ───────────────────────────────────────────────
 
   const filteredExercises = availableExercises.filter((ex) => {
@@ -364,6 +383,24 @@ export default function WorkoutLogger() {
         if (ex.id !== exerciseEntryId) return ex;
         return { ...ex, sets: ex.sets.filter((s) => s.id !== setId) };
       }),
+    );
+  }, []);
+
+  const handleWeightChange = useCallback((exerciseEntryId: string, setId: string, rawValue: string) => {
+    const isBW = rawValue.trim().toLowerCase() === 'bw';
+    setExercises((prev) =>
+      prev.map((ex) => {
+        if (ex.id !== exerciseEntryId) return ex;
+        return {
+          ...ex,
+          sets: ex.sets.map((s) => {
+            if (s.id !== setId) return s;
+            return isBW
+              ? { ...s, weight: 0, bodyweight: true }
+              : { ...s, weight: parseFloat(rawValue) || 0, bodyweight: false };
+          }),
+        };
+      })
     );
   }, []);
 
@@ -443,8 +480,8 @@ export default function WorkoutLogger() {
     const finalExercises = exercises.map((ex) => {
       const updatedSets = ex.sets.map((s) => {
         // Convert displayed weight to kg for storage (use per-exercise unit if set)
-        const weightInKg = inputToKg(s.weight, ex.weightUnit ?? weightUnit);
-        if (status === 'complete') {
+        const weightInKg = s.bodyweight ? 0 : inputToKg(s.weight, ex.weightUnit ?? weightUnit);
+        if (status === 'complete' && !s.bodyweight) {
           const { isPB, updatedPBs } = checkPB(ex.exerciseId, ex.exerciseName, weightInKg, s.reps, currentPBs);
           currentPBs = updatedPBs;
           if (isPB) {
@@ -454,7 +491,7 @@ export default function WorkoutLogger() {
           }
           return { ...s, weight: weightInKg, isPB };
         }
-        return { ...s, weight: weightInKg };
+        return { ...s, weight: weightInKg, isPB: false };
       });
       return { ...ex, sets: updatedSets };
     });
@@ -496,6 +533,9 @@ export default function WorkoutLogger() {
 
     // Clear active session from localStorage
     clearActiveSession();
+
+    // Refresh saved workouts so last-session references update
+    setSavedWorkouts(getWorkouts());
 
     // Reset form
     setEditingWorkoutId(null);
@@ -675,7 +715,7 @@ export default function WorkoutLogger() {
             const isLastInSuperset = isInSuperset && (!nextEx || nextEx.supersetGroup !== ex.supersetGroup);
             const isLinkedToNext = isInSuperset && nextEx?.supersetGroup === ex.supersetGroup;
             const isExComplete = ex.sets.length > 0 && ex.sets.every((s) =>
-              s.weight > 0 && (trackingMode === 'seconds' ? (s.seconds ?? 0) > 0 : s.reps > 0)
+              (s.bodyweight || s.weight > 0) && (trackingMode === 'seconds' ? (s.seconds ?? 0) > 0 : s.reps > 0)
             );
 
             return (
@@ -793,16 +833,14 @@ export default function WorkoutLogger() {
                         <td className="px-4 py-2">
                           <div className="flex items-center gap-1">
                             <input
-                              type="number"
-                              min={0}
-                              step={0.5}
-                              value={set.weight || ''}
-                              onChange={(e) =>
-                                updateSet(ex.id, set.id, 'weight', parseFloat(e.target.value) || 0)
-                              }
+                              type="text"
+                              inputMode="decimal"
+                              value={set.bodyweight ? 'BW' : (set.weight > 0 ? String(set.weight) : '')}
+                              onChange={(e) => handleWeightChange(ex.id, set.id, e.target.value)}
+                              placeholder="0"
                               className="w-20 bg-[#1f1f1f] border border-[#2a2a2a] rounded-[2px] px-2 py-1 text-[#ffffff] text-sm text-center focus:outline-none focus:border-[#D4FF00] transition-colors"
                             />
-                            <span className="text-[#888888] text-xs">{ex.weightUnit ?? weightUnit}</span>
+                            {!set.bodyweight && <span className="text-[#888888] text-xs">{ex.weightUnit ?? weightUnit}</span>}
                           </div>
                         </td>
                         <td className="px-4 py-2">
@@ -831,13 +869,16 @@ export default function WorkoutLogger() {
                               {set.isPB ? (
                                 <span className="text-[#D4FF00] text-[9px] font-bold uppercase tracking-wider text-center">NEW PB!</span>
                               ) : (() => {
-                                const pb = pbs.find((p) => p.exerciseId === ex.exerciseId);
+                                const lastEx = lastSessionMap[ex.exerciseId];
+                                const lastSet = lastEx?.sets[setIndex];
                                 const displayUnit = ex.weightUnit ?? weightUnit;
-                                return pb ? (
-                                  <span className="text-[#888888] text-[9px] text-center whitespace-nowrap">
-                                    {Math.round(kgToDisplay(pb.heaviestWeight, displayUnit) * 10) / 10}{displayUnit}×{pb.heaviestWeightReps}
+                                if (!lastSet) return null;
+                                const w = lastSet.bodyweight ? 'BW' : `${Math.round(kgToDisplay(lastSet.weight, displayUnit) * 10) / 10}${displayUnit}`;
+                                return (
+                                  <span className="text-[#555555] text-[9px] text-center whitespace-nowrap">
+                                    {w}×{lastSet.reps}
                                   </span>
-                                ) : null;
+                                );
                               })()}
                             </div>
                           )}
@@ -1001,6 +1042,11 @@ export default function WorkoutLogger() {
                       <p className="text-sm font-bold text-[#ffffff] truncate">{exercise.name}</p>
                       <p className="text-[10px] text-[#888888] uppercase tracking-wider">
                         {exercise.muscleGroup}
+                        {lastSessionMap[exercise.id] && (
+                          <span className="ml-2 text-[#555555] normal-case tracking-normal">
+                            · last: {new Date(lastSessionMap[exercise.id].date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                          </span>
+                        )}
                       </p>
                     </div>
                     <span className="text-[10px] font-bold uppercase tracking-wider text-[#888888] bg-[#1f1f1f] border border-[#2a2a2a] px-2 py-0.5 rounded-[2px] shrink-0">

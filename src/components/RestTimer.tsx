@@ -3,6 +3,15 @@ import { Timer, Play, Pause, RotateCcw, X } from 'lucide-react';
 
 const REST_PRESETS = [30, 60, 90, 120, 180]; // seconds
 
+function showTimerNotification() {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  try {
+    new Notification('Rest Complete! 💪', { body: "Time to get back to it.", silent: true });
+  } catch {
+    // Notifications not supported in this context
+  }
+}
+
 function playBeep() {
   try {
     const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
@@ -72,6 +81,7 @@ export default function RestTimer({ onClose }: RestTimerProps) {
           setRunning(false);
           setFinished(true);
           playBeep();
+          showTimerNotification();
           // Auto-reset after 3 s so it's ready for the next set
           setTimeout(() => {
             setFinished(false);
@@ -92,6 +102,10 @@ export default function RestTimer({ onClose }: RestTimerProps) {
     setFinished(false);
     deadlineRef.current = null; // will be set fresh in the effect
     setRunning(true);
+    // Request notification permission on first start (requires user gesture)
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
   }, []);
 
   const pause = useCallback(() => {

@@ -33,6 +33,7 @@ export interface WorkoutSet {
   reps: number;
   seconds?: number; // used when exercise trackingMode is 'seconds'
   weight: number; // stored in kg
+  bodyweight?: boolean; // when true, weight is irrelevant (bodyweight exercise)
   notes: string;
   isPB: boolean;
 }
