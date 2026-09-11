@@ -484,7 +484,7 @@ export default function History() {
                   <div key={set.id} className="flex items-center gap-2 text-sm">
                     <span className="w-6 text-center font-bold" style={{ color: '#888888' }}>{idx + 1}</span>
                     <span style={{ color: '#ffffff' }}>
-                      {set.reps} reps &times; {kgToDisplay(set.weight, weightUnit)} {weightUnit}
+                      {set.reps} reps &times; {set.bodyweight ? 'BW' : `${kgToDisplay(set.weight, weightUnit)} ${weightUnit}`}
                     </span>
                     {set.isPB && (
                       <span className="px-1.5 py-0.5 text-xs font-bold uppercase" style={{ backgroundColor: '#D4FF00', color: '#0a0a0a', borderRadius: '2px' }}>
@@ -556,6 +556,7 @@ export default function History() {
   }
 
   return (
+    <>
     <PageWrapper>
       <div className="space-y-6">
         {/* Header */}
@@ -908,9 +909,9 @@ export default function History() {
           </div>
         )}
 
-        {/* Detail modal */}
-        {selectedSession && renderDetail()}
       </div>
     </PageWrapper>
+    {selectedSession && renderDetail()}
+    </>
   );
 }
