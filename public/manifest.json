@@ -2,24 +2,30 @@
   "name": "Sweaty Beasts",
   "short_name": "Sweaty Beasts",
   "description": "Your no-excuses workout tracker",
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "/sweatybeasts/",
+  "scope": "/sweatybeasts/",
   "display": "standalone",
   "background_color": "#0a0a0a",
   "theme_color": "#0a0a0a",
   "categories": ["fitness", "health"],
   "icons": [
     {
-      "src": "/icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
+      "src": "/sweatybeasts/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icon-maskable.svg",
+      "src": "/sweatybeasts/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/sweatybeasts/icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
-      "purpose": "maskable"
+      "purpose": "any"
     }
   ]
 }
