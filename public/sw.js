@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sweaty-beasts-v4';
+const CACHE_NAME = 'sweaty-beasts-v5';
 const SHELL_ASSETS = [
   '/sweatybeasts/',
   '/sweatybeasts/index.html',
