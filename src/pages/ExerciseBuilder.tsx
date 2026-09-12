@@ -4,9 +4,11 @@ import PageWrapper from '../components/PageWrapper';
 import ExerciseSVG from '../components/ExerciseSVG';
 import { getExercises, saveExercises } from '../utils/storage';
 import type { Exercise, MuscleGroup, Equipment } from '../types';
+import { MUSCLE_GROUP_OPTIONS, MUSCLE_BODY_PART } from '../types';
 import { builtInExercises } from '../data/exercises';
 
 const MUSCLE_GROUPS: MuscleGroup[] = ['Chest', 'Back', 'Shoulders', 'Legs', 'Arms', 'Core', 'Full Body'];
+const ALL_SPECIFIC_MUSCLES: MuscleGroup[] = MUSCLE_GROUP_OPTIONS.flatMap(g => g.muscles);
 const EQUIPMENT_OPTIONS: Equipment[] = ['Barbell', 'Dumbbell', 'Cable', 'Bodyweight', 'Machine', 'Kettlebell', 'Other'];
 
 function generateId(): string {
@@ -43,7 +45,7 @@ export default function ExerciseBuilder() {
 
   const filteredExercises = exercises.filter((ex) => {
     const matchesSearch = ex.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesMuscle = !muscleFilter || ex.muscleGroup === muscleFilter;
+    const matchesMuscle = !muscleFilter || ex.muscleGroup === muscleFilter || MUSCLE_BODY_PART[ex.muscleGroup] === muscleFilter;
     const matchesEquipment = !equipmentFilter || ex.equipment === equipmentFilter;
     return matchesSearch && matchesMuscle && matchesEquipment;
   });
@@ -232,8 +234,10 @@ export default function ExerciseBuilder() {
                     onChange={(e) => setMuscleGroup(e.target.value as MuscleGroup)}
                     className="appearance-none w-full bg-[#0a0a0a] border border-[#2a2a2a] text-[#ffffff] px-4 py-2.5 pr-10 rounded-[2px] text-sm focus:outline-none focus:border-[#D4FF00] transition-colors cursor-pointer"
                   >
-                    {MUSCLE_GROUPS.map((mg) => (
-                      <option key={mg} value={mg}>{mg}</option>
+                    {MUSCLE_GROUP_OPTIONS.map(({ group, muscles }) => (
+                      <optgroup key={group} label={group}>
+                        {muscles.map(m => <option key={m} value={m}>{m}</option>)}
+                      </optgroup>
                     ))}
                   </select>
                   <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#888888] pointer-events-none" />
@@ -264,7 +268,7 @@ export default function ExerciseBuilder() {
                 Secondary Muscles
               </label>
               <div className="flex flex-wrap gap-2">
-                {MUSCLE_GROUPS.filter((mg) => mg !== muscleGroup).map((mg) => (
+                {ALL_SPECIFIC_MUSCLES.filter((mg) => mg !== muscleGroup).map((mg) => (
                   <button
                     key={mg}
                     type="button"

@@ -4,6 +4,7 @@ import { Plus, Trash2, Play, Edit3, X, Save, Dumbbell, ChevronDown, ChevronUp, F
 import PageWrapper from '../components/PageWrapper';
 import ExerciseSVG from '../components/ExerciseSVG';
 import type { WorkoutExercise, Exercise } from '../types';
+import { MUSCLE_GROUP_OPTIONS, MUSCLE_BODY_PART } from '../types';
 import { getExercises, saveExercises } from '../utils/storage';
 import { builtInExercises } from '../data/exercises';
 
@@ -261,7 +262,7 @@ export default function Routines() {
 
   const filteredExercises = availableExercises.filter((ex) => {
     const matchesSearch = ex.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesMuscle = muscleFilter === 'All' || ex.muscleGroup === muscleFilter;
+    const matchesMuscle = muscleFilter === 'All' || ex.muscleGroup === muscleFilter || MUSCLE_BODY_PART[ex.muscleGroup] === muscleFilter;
     return matchesSearch && matchesMuscle;
   });
 
@@ -674,8 +675,10 @@ export default function Routines() {
                         onChange={(e) => setNewExMuscle(e.target.value as import('../types').MuscleGroup)}
                         className="bg-[#1f1f1f] border border-[#2a2a2a] rounded-[2px] px-2 py-1.5 text-xs text-white focus:outline-none focus:border-[#D4FF00]"
                       >
-                        {(['Chest','Back','Shoulders','Legs','Arms','Core','Full Body'] as const).map(m => (
-                          <option key={m} value={m}>{m}</option>
+                        {MUSCLE_GROUP_OPTIONS.map(({ group, muscles }) => (
+                          <optgroup key={group} label={group}>
+                            {muscles.map(m => <option key={m} value={m}>{m}</option>)}
+                          </optgroup>
                         ))}
                       </select>
                       <select
