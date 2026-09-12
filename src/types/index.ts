@@ -11,13 +11,37 @@ export interface Exercise {
 }
 
 export type MuscleGroup =
-  | 'Chest'
-  | 'Back'
-  | 'Shoulders'
-  | 'Legs'
-  | 'Arms'
-  | 'Core'
-  | 'Full Body';
+  // Body parts (general — used for filter chips)
+  | 'Chest' | 'Back' | 'Shoulders' | 'Legs' | 'Arms' | 'Core' | 'Full Body'
+  // Specific muscles
+  | 'Pecs' | 'Upper Chest'
+  | 'Lats' | 'Upper Back' | 'Lower Back' | 'Traps'
+  | 'Front Delts' | 'Side Delts' | 'Rear Delts'
+  | 'Biceps' | 'Triceps' | 'Forearms'
+  | 'Quads' | 'Hamstrings' | 'Glutes' | 'Calves' | 'Hip Flexors' | 'Adductors' | 'Abductors'
+  | 'Abs' | 'Obliques';
+
+// Grouped options for muscle selects in forms
+export const MUSCLE_GROUP_OPTIONS: { group: string; muscles: MuscleGroup[] }[] = [
+  { group: 'Body Part', muscles: ['Chest', 'Back', 'Shoulders', 'Legs', 'Arms', 'Core', 'Full Body'] },
+  { group: 'Chest', muscles: ['Pecs', 'Upper Chest'] },
+  { group: 'Back', muscles: ['Lats', 'Upper Back', 'Lower Back', 'Traps'] },
+  { group: 'Shoulders', muscles: ['Front Delts', 'Side Delts', 'Rear Delts'] },
+  { group: 'Arms', muscles: ['Biceps', 'Triceps', 'Forearms'] },
+  { group: 'Legs', muscles: ['Quads', 'Hamstrings', 'Glutes', 'Calves', 'Hip Flexors', 'Adductors', 'Abductors'] },
+  { group: 'Core', muscles: ['Abs', 'Obliques'] },
+];
+
+// Maps specific muscles to their body-part category for filter matching
+export const MUSCLE_BODY_PART: Partial<Record<MuscleGroup, MuscleGroup>> = {
+  'Pecs': 'Chest', 'Upper Chest': 'Chest',
+  'Lats': 'Back', 'Upper Back': 'Back', 'Lower Back': 'Back', 'Traps': 'Back',
+  'Front Delts': 'Shoulders', 'Side Delts': 'Shoulders', 'Rear Delts': 'Shoulders',
+  'Biceps': 'Arms', 'Triceps': 'Arms', 'Forearms': 'Arms',
+  'Quads': 'Legs', 'Hamstrings': 'Legs', 'Glutes': 'Legs', 'Calves': 'Legs',
+  'Hip Flexors': 'Legs', 'Adductors': 'Legs', 'Abductors': 'Legs',
+  'Abs': 'Core', 'Obliques': 'Core',
+};
 
 export type Equipment =
   | 'Barbell'
