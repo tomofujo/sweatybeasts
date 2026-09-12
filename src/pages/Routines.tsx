@@ -409,20 +409,20 @@ export default function Routines() {
     <PageWrapper>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="space-y-3">
           <h1 className="text-2xl font-bold uppercase tracking-wider text-[#ffffff]">Routines</h1>
-          <div className="flex items-center gap-2">
-            <button onClick={() => setShowWizard(true)} className="flex items-center gap-2 bg-[#1a1a1a] border border-[#D4FF00]/40 text-[#D4FF00] px-3 py-2 rounded-[2px] font-bold uppercase tracking-wider text-sm hover:border-[#D4FF00] transition-colors">
-              <Sparkles size={16} /> Build Plan
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
+            <button onClick={() => setShowWizard(true)} className="flex items-center justify-center gap-1.5 bg-[#1a1a1a] border border-[#D4FF00]/40 text-[#D4FF00] px-2 py-2 rounded-[2px] font-bold uppercase tracking-wider text-xs sm:text-sm hover:border-[#D4FF00] transition-colors">
+              <Sparkles size={14} className="shrink-0" /> <span className="truncate">Build Plan</span>
             </button>
-            <button onClick={() => setShowTemplates(true)} className="flex items-center gap-2 bg-[#1a1a1a] border border-[#2a2a2a] text-[#D4FF00] px-3 py-2 rounded-[2px] font-bold uppercase tracking-wider text-sm hover:border-[#D4FF00] transition-colors">
-              Templates
+            <button onClick={() => setShowTemplates(true)} className="flex items-center justify-center gap-1.5 bg-[#1a1a1a] border border-[#2a2a2a] text-[#D4FF00] px-2 py-2 rounded-[2px] font-bold uppercase tracking-wider text-xs sm:text-sm hover:border-[#D4FF00] transition-colors">
+              <span className="truncate">Templates</span>
             </button>
-            <button onClick={openCreateGroup} className="flex items-center gap-2 bg-[#1a1a1a] border border-[#2a2a2a] text-[#888888] px-3 py-2 rounded-[2px] font-bold uppercase tracking-wider text-sm hover:border-[#888888] hover:text-[#ffffff] transition-colors">
-              <FolderPlus size={16} /> Group
+            <button onClick={openCreateGroup} className="flex items-center justify-center gap-1.5 bg-[#1a1a1a] border border-[#2a2a2a] text-[#888888] px-2 py-2 rounded-[2px] font-bold uppercase tracking-wider text-xs sm:text-sm hover:border-[#888888] hover:text-[#ffffff] transition-colors">
+              <FolderPlus size={14} className="shrink-0" /> <span className="truncate">Group</span>
             </button>
-            <button onClick={openCreate} className="flex items-center gap-2 bg-[#D4FF00] text-[#0a0a0a] px-3 py-2 rounded-[2px] font-bold uppercase tracking-wider text-sm hover:brightness-110 transition-all">
-              <Plus size={18} /> New Routine
+            <button onClick={openCreate} className="flex items-center justify-center gap-1.5 bg-[#D4FF00] text-[#0a0a0a] px-2 py-2 rounded-[2px] font-bold uppercase tracking-wider text-xs sm:text-sm hover:brightness-110 transition-all">
+              <Plus size={16} className="shrink-0" /> <span className="truncate">New Routine</span>
             </button>
           </div>
         </div>
