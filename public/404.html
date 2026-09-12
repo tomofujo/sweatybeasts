@@ -6,9 +6,9 @@
   <script>
     // GitHub Pages SPA redirect: encode the path into a query string
     // so index.html can restore it via history.replaceState.
-    // pathSegmentsToKeep=0 because the app is served from the root
-    // of a custom domain (sweatybeasts.com), not a sub-path.
-    var pathSegmentsToKeep = 0;
+    // pathSegmentsToKeep=1 keeps the /sweatybeasts/ project-page prefix.
+    // At 0 this redirects to the domain root, which has no site (404).
+    var pathSegmentsToKeep = 1;
     var l = window.location;
     l.replace(
       l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
