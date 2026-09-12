@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Plus, Trash2, Play, Edit3, X, Save, Dumbbell, ChevronDown, ChevronUp, FolderPlus } from 'lucide-react';
+import { Plus, Trash2, Play, Edit3, X, Save, Dumbbell, ChevronDown, ChevronUp, FolderPlus, Sparkles } from 'lucide-react';
 import PageWrapper from '../components/PageWrapper';
 import ExerciseSVG from '../components/ExerciseSVG';
+import RoutineWizard from '../components/RoutineWizard';
+import type { GeneratedRoutine } from '../utils/routineGenerator';
 import type { WorkoutExercise, Exercise } from '../types';
 import { MUSCLE_GROUP_OPTIONS, MUSCLE_BODY_PART } from '../types';
 import { getExercises, saveExercises } from '../utils/storage';
@@ -233,6 +235,7 @@ export default function Routines() {
   const [routineExercises, setRoutineExercises] = useState<RoutineExercise[]>([]);
 
   const [showTemplates, setShowTemplates] = useState(false);
+  const [showWizard, setShowWizard] = useState(false);
   const formRef = useRef<HTMLDivElement>(null);
 
   // Exercise search
@@ -356,6 +359,31 @@ export default function Routines() {
     setDeleteConfirm(null);
   }
 
+  function handleWizardCreate(planName: string, generated: GeneratedRoutine[]) {
+    const group: RoutineGroup = {
+      id: crypto.randomUUID(),
+      name: planName,
+      color: GROUP_COLORS[groups.length % GROUP_COLORS.length],
+      createdAt: new Date().toISOString(),
+    };
+    const now = new Date().toISOString();
+    const newRoutines: Routine[] = generated.map((g) => ({
+      id: crypto.randomUUID(),
+      name: g.name,
+      exercises: g.exercises,
+      groupId: group.id,
+      createdAt: now,
+    }));
+
+    const updatedGroups = [...groups, group];
+    const updatedRoutines = [...routines, ...newRoutines];
+    saveGroups(updatedGroups);
+    saveRoutines(updatedRoutines);
+    setGroups(updatedGroups);
+    setRoutines(updatedRoutines);
+    setShowWizard(false);
+  }
+
   function addExerciseToRoutine(exercise: Exercise) {
     setRoutineExercises((prev) => [...prev, { exerciseId: exercise.id, exerciseName: exercise.name, targetSets: 3, targetReps: 10 }]);
     setShowExerciseSearch(false);
@@ -377,12 +405,16 @@ export default function Routines() {
   const ungrouped = routines.filter((r) => !r.groupId);
 
   return (
+    <>
     <PageWrapper>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h1 className="text-2xl font-bold uppercase tracking-wider text-[#ffffff]">Routines</h1>
           <div className="flex items-center gap-2">
+            <button onClick={() => setShowWizard(true)} className="flex items-center gap-2 bg-[#1a1a1a] border border-[#D4FF00]/40 text-[#D4FF00] px-3 py-2 rounded-[2px] font-bold uppercase tracking-wider text-sm hover:border-[#D4FF00] transition-colors">
+              <Sparkles size={16} /> Build Plan
+            </button>
             <button onClick={() => setShowTemplates(true)} className="flex items-center gap-2 bg-[#1a1a1a] border border-[#2a2a2a] text-[#D4FF00] px-3 py-2 rounded-[2px] font-bold uppercase tracking-wider text-sm hover:border-[#D4FF00] transition-colors">
               Templates
             </button>
@@ -740,5 +772,14 @@ export default function Routines() {
         )}
       </div>
     </PageWrapper>
+
+    {showWizard && (
+      <RoutineWizard
+        library={availableExercises}
+        onClose={() => setShowWizard(false)}
+        onCreate={handleWizardCreate}
+      />
+    )}
+    </>
   );
 }
