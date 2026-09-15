@@ -331,6 +331,7 @@ export default function WorkoutLogger() {
       exerciseId: exercise.id,
       exerciseName: exercise.name,
       sets: [],
+      isBodyweight: exercise.equipment === 'Bodyweight',
     };
     setExercises((prev) => [...prev, newExercise]);
     setShowExerciseSearch(false);
@@ -352,10 +353,25 @@ export default function WorkoutLogger() {
           id: crypto.randomUUID(),
           reps: 0,
           weight: 0,
+          bodyweight: ex.isBodyweight ?? false,
           notes: '',
           isPB: false,
         };
         return { ...ex, sets: [...ex.sets, newSet] };
+      }),
+    );
+  }, []);
+
+  const toggleBodyweightMode = useCallback((exerciseEntryId: string) => {
+    setExercises((prev) =>
+      prev.map((ex) => {
+        if (ex.id !== exerciseEntryId) return ex;
+        const next = !ex.isBodyweight;
+        return {
+          ...ex,
+          isBodyweight: next,
+          sets: ex.sets.map((s) => (next ? { ...s, bodyweight: true, weight: 0 } : { ...s, bodyweight: false })),
+        };
       }),
     );
   }, []);
@@ -618,7 +634,7 @@ export default function WorkoutLogger() {
             <button
               onClick={() => setShowRestTimer((v) => !v)}
               className={`shrink-0 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-[2px] transition-colors ${
-                showRestTimer ? 'bg-[#D4FF00] text-[#0a0a0a]' : 'bg-[#1a1a1a] border border-[#2a2a2a] text-[#888888] hover:text-[#D4FF00]'
+                showRestTimer ? 'bg-[#D4FF00] text-[#0a0a0a]' : 'bg-[#1a1a1a] border border-[#D4FF00]/40 text-[#D4FF00] hover:border-[#D4FF00]'
               }`}
             >
               Rest Timer
@@ -784,6 +800,18 @@ export default function WorkoutLogger() {
                       title="Toggle weight unit for this exercise"
                     >
                       {ex.weightUnit ?? weightUnit}
+                    </button>
+                  )}
+                  {/* Bodyweight toggle — only when expanded */}
+                  {!isCollapsed && (
+                    <button
+                      onClick={() => toggleBodyweightMode(ex.id)}
+                      className={`px-2 py-1 text-[10px] font-bold uppercase tracking-wider rounded-[2px] transition-colors ${
+                        ex.isBodyweight ? 'bg-[#D4FF00] text-[#0a0a0a]' : 'bg-[#1f1f1f] border border-[#2a2a2a] text-[#888888] hover:text-[#D4FF00]'
+                      }`}
+                      title="Toggle bodyweight (no weight needed)"
+                    >
+                      BW
                     </button>
                   )}
                   {exIndex < exercises.length - 1 && (
