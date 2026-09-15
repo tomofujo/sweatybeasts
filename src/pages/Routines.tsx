@@ -390,13 +390,17 @@ export default function Routines() {
   }
 
   function startRoutine(routine: Routine) {
-    const workoutExercises: WorkoutExercise[] = routine.exercises.map((re) => ({
-      id: crypto.randomUUID(),
-      exerciseId: re.exerciseId,
-      exerciseName: re.exerciseName,
-      targetReps: re.targetReps ?? 10,
-      sets: Array.from({ length: re.targetSets }, () => ({ id: crypto.randomUUID(), reps: 0, weight: 0, notes: '', isPB: false })),
-    }));
+    const workoutExercises: WorkoutExercise[] = routine.exercises.map((re) => {
+      const isBodyweight = availableExercises.find((e) => e.id === re.exerciseId)?.equipment === 'Bodyweight';
+      return {
+        id: crypto.randomUUID(),
+        exerciseId: re.exerciseId,
+        exerciseName: re.exerciseName,
+        targetReps: re.targetReps ?? 10,
+        isBodyweight,
+        sets: Array.from({ length: re.targetSets }, () => ({ id: crypto.randomUUID(), reps: 0, weight: 0, bodyweight: isBodyweight, notes: '', isPB: false })),
+      };
+    });
     navigate('/workout', { state: { template: { name: routine.name, exercises: workoutExercises } } });
   }
 

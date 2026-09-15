@@ -71,6 +71,7 @@ export interface WorkoutExercise {
   trackingMode?: 'reps' | 'seconds'; // defaults to 'reps' when absent
   targetReps?: number; // set when loaded from a routine — shown as ghost placeholder
   weightUnit?: 'kg' | 'lbs'; // per-exercise unit override; if absent falls back to session unit
+  isBodyweight?: boolean; // when true, new sets default to bodyweight (no weight entry needed)
 }
 
 export interface Workout {
