@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Plus, Trash2, Play, Edit3, X, Save, Dumbbell, ChevronDown, ChevronUp, FolderPlus, Sparkles, GripVertical } from 'lucide-react';
+import { Plus, Trash2, Play, Edit3, X, Save, Dumbbell, ChevronDown, ChevronUp, FolderPlus, Sparkles, GripVertical, Link2, Unlink } from 'lucide-react';
 import PageWrapper from '../components/PageWrapper';
 import ExerciseSVG from '../components/ExerciseSVG';
 import RoutineWizard from '../components/RoutineWizard';
@@ -32,6 +32,7 @@ interface RoutineExercise {
   exerciseName: string;
   targetSets: number;
   targetReps: number;
+  supersetGroup?: string; // exercises sharing the same group ID are a superset
 }
 
 const ROUTINES_KEY = 'sb_routines';
@@ -304,6 +305,20 @@ export default function Routines() {
     document.addEventListener('touchend', cleanup);
   }, [reorderRoutineExercises]);
 
+  // Links (or unlinks) two adjacent exercises as a superset
+  const toggleRoutineSuperset = useCallback((index: number) => {
+    setRoutineExercises((prev) => {
+      if (index >= prev.length - 1) return prev;
+      const current = prev[index];
+      const next = prev[index + 1];
+      if (current.supersetGroup && current.supersetGroup === next.supersetGroup) {
+        return prev.map((ex, i) => (i === index || i === index + 1) ? { ...ex, supersetGroup: undefined } : ex);
+      }
+      const groupId = current.supersetGroup || next.supersetGroup || crypto.randomUUID();
+      return prev.map((ex, i) => (i === index || i === index + 1) ? { ...ex, supersetGroup: groupId } : ex);
+    });
+  }, []);
+
   const [showTemplates, setShowTemplates] = useState(false);
   const [showWizard, setShowWizard] = useState(false);
   const formRef = useRef<HTMLDivElement>(null);
@@ -468,6 +483,7 @@ export default function Routines() {
         exerciseName: re.exerciseName,
         targetReps: re.targetReps ?? 10,
         isBodyweight,
+        supersetGroup: re.supersetGroup,
         sets: Array.from({ length: re.targetSets }, () => ({ id: crypto.randomUUID(), reps: 0, weight: 0, bodyweight: isBodyweight, notes: '', isPB: false })),
       };
     });
@@ -561,33 +577,65 @@ export default function Routines() {
                 <p className="text-sm text-[#888888] py-4 text-center">No exercises added yet.</p>
               ) : (
                 <div className="space-y-2 mb-3">
-                  {routineExercises.map((re, idx) => (
-                    <div
-                      key={idx}
-                      data-rex-idx={idx}
-                      className={`flex items-center gap-1.5 sm:gap-2 bg-[#0a0a0a] border rounded-[2px] p-2 sm:p-3 transition-colors ${
-                        exDragOverIdx === idx && exDragIdx !== idx ? 'border-[#D4FF00]' : 'border-[#2a2a2a]'
-                      }`}
-                      style={{ opacity: exDragIdx === idx ? 0.5 : 1 }}
-                    >
-                      <div
-                        className="touch-none cursor-grab active:cursor-grabbing text-[#444444] hover:text-[#888888] transition-colors shrink-0 -ml-1 p-1 select-none"
-                        style={{ WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'none' }}
-                        onPointerDown={(e) => handleExGripPointerDown(e, idx)}
-                        onContextMenu={(e) => e.preventDefault()}
-                        title="Drag to reorder"
-                      >
-                        <GripVertical size={16} />
+                  {routineExercises.map((re, idx) => {
+                    const prevRe = idx > 0 ? routineExercises[idx - 1] : null;
+                    const nextRe = idx < routineExercises.length - 1 ? routineExercises[idx + 1] : null;
+                    const isInSuperset = !!re.supersetGroup;
+                    const isFirstInSuperset = isInSuperset && (!prevRe || prevRe.supersetGroup !== re.supersetGroup);
+                    const isLastInSuperset = isInSuperset && (!nextRe || nextRe.supersetGroup !== re.supersetGroup);
+                    const isLinkedToNext = isInSuperset && nextRe?.supersetGroup === re.supersetGroup;
+
+                    return (
+                      <div key={idx}>
+                        {isFirstInSuperset && (
+                          <div className="flex items-center gap-1.5 mb-1 px-1">
+                            <Link2 size={11} className="text-[#D4FF00]" />
+                            <span className="text-[9px] font-bold uppercase tracking-wider text-[#D4FF00]">Superset</span>
+                          </div>
+                        )}
+                        <div
+                          data-rex-idx={idx}
+                          className={`flex items-center gap-1.5 sm:gap-2 bg-[#0a0a0a] border rounded-[2px] p-2 sm:p-3 transition-colors ${
+                            exDragOverIdx === idx && exDragIdx !== idx ? 'border-[#D4FF00]' : isInSuperset ? 'border-[#D4FF00]/30' : 'border-[#2a2a2a]'
+                          } ${isInSuperset ? 'ml-3' : ''} ${isInSuperset && !isLastInSuperset ? 'border-b-0 rounded-b-none' : ''} ${isInSuperset && !isFirstInSuperset ? 'rounded-t-none' : ''}`}
+                          style={{ opacity: exDragIdx === idx ? 0.5 : 1 }}
+                        >
+                          <div
+                            className="touch-none cursor-grab active:cursor-grabbing text-[#444444] hover:text-[#888888] transition-colors shrink-0 -ml-1 p-1 select-none"
+                            style={{ WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'none' }}
+                            onPointerDown={(e) => handleExGripPointerDown(e, idx)}
+                            onContextMenu={(e) => e.preventDefault()}
+                            title="Drag to reorder"
+                          >
+                            <GripVertical size={16} />
+                          </div>
+                          <div className="w-7 h-7 sm:w-8 sm:h-8 bg-[#1f1f1f] border border-[#2a2a2a] rounded-[2px] overflow-hidden shrink-0">
+                            <ExerciseSVG exerciseId={re.exerciseId} exerciseName={re.exerciseName} className="w-full h-full" />
+                          </div>
+                          <span className="flex-1 min-w-0 text-sm font-bold text-[#ffffff] truncate">{re.exerciseName}</span>
+                          <NumericInput value={re.targetSets} min={1} max={20} onChange={(n) => setRoutineExercises((prev) => prev.map((e, i) => i === idx ? { ...e, targetSets: n } : e))} className="w-9 shrink-0 bg-[#1f1f1f] border border-[#2a2a2a] rounded-[2px] px-1 py-1 text-[#ffffff] text-sm text-center focus:outline-none focus:border-[#D4FF00]" />
+                          <NumericInput value={re.targetReps} min={1} max={999} onChange={(n) => setRoutineExercises((prev) => prev.map((e, i) => i === idx ? { ...e, targetReps: n } : e))} className="w-9 shrink-0 bg-[#1f1f1f] border border-[#2a2a2a] rounded-[2px] px-1 py-1 text-[#ffffff] text-sm text-center focus:outline-none focus:border-[#D4FF00]" />
+                          <button onClick={() => setRoutineExercises((prev) => prev.filter((_, i) => i !== idx))} className="text-[#888888] hover:text-[#ff4444] transition-colors p-1 shrink-0"><Trash2 size={14} /></button>
+                        </div>
+                        {nextRe && (
+                          <div className="flex justify-center -my-1 relative z-10">
+                            <button
+                              onClick={() => toggleRoutineSuperset(idx)}
+                              title={isLinkedToNext ? 'Unlink superset' : 'Link as superset with next exercise'}
+                              className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider border transition-colors ${
+                                isLinkedToNext
+                                  ? 'bg-[#D4FF00] text-[#0a0a0a] border-[#D4FF00]'
+                                  : 'bg-[#1a1a1a] text-[#555555] border-[#2a2a2a] hover:text-[#D4FF00] hover:border-[#D4FF00]/40'
+                              }`}
+                            >
+                              {isLinkedToNext ? <Unlink size={10} /> : <Link2 size={10} />}
+                              {isLinkedToNext ? 'Linked' : 'Superset'}
+                            </button>
+                          </div>
+                        )}
                       </div>
-                      <div className="w-7 h-7 sm:w-8 sm:h-8 bg-[#1f1f1f] border border-[#2a2a2a] rounded-[2px] overflow-hidden shrink-0">
-                        <ExerciseSVG exerciseId={re.exerciseId} exerciseName={re.exerciseName} className="w-full h-full" />
-                      </div>
-                      <span className="flex-1 min-w-0 text-sm font-bold text-[#ffffff] truncate">{re.exerciseName}</span>
-                      <NumericInput value={re.targetSets} min={1} max={20} onChange={(n) => setRoutineExercises((prev) => prev.map((e, i) => i === idx ? { ...e, targetSets: n } : e))} className="w-9 shrink-0 bg-[#1f1f1f] border border-[#2a2a2a] rounded-[2px] px-1 py-1 text-[#ffffff] text-sm text-center focus:outline-none focus:border-[#D4FF00]" />
-                      <NumericInput value={re.targetReps} min={1} max={999} onChange={(n) => setRoutineExercises((prev) => prev.map((e, i) => i === idx ? { ...e, targetReps: n } : e))} className="w-9 shrink-0 bg-[#1f1f1f] border border-[#2a2a2a] rounded-[2px] px-1 py-1 text-[#ffffff] text-sm text-center focus:outline-none focus:border-[#D4FF00]" />
-                      <button onClick={() => setRoutineExercises((prev) => prev.filter((_, i) => i !== idx))} className="text-[#888888] hover:text-[#ff4444] transition-colors p-1 shrink-0"><Trash2 size={14} /></button>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
               <button onClick={() => { setSearchQuery(''); setMuscleFilter('All'); setShowCreateCustom(false); setNewExName(''); setShowExerciseSearch(true); }} className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#D4FF00] hover:brightness-110 transition-all">

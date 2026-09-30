@@ -86,7 +86,7 @@ export function clearActiveSession(): void {
 export interface StoredRoutine {
   id: string;
   name: string;
-  exercises: { exerciseId: string; exerciseName: string; targetSets: number; targetReps: number }[];
+  exercises: { exerciseId: string; exerciseName: string; targetSets: number; targetReps: number; supersetGroup?: string }[];
   createdAt: string;
 }
 export function getRoutines(): StoredRoutine[] {

@@ -395,6 +395,7 @@ export default function History() {
                         exerciseName: ex.exerciseName,
                         targetSets: ex.sets.length || 3,
                         targetReps: ex.sets.length > 0 ? (ex.sets[0].reps || 10) : 10,
+                        supersetGroup: ex.supersetGroup,
                       })),
                       createdAt: new Date().toISOString(),
                     };
