@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Plus, Trash2, Play, Edit3, X, Save, Dumbbell, ChevronDown, ChevronUp, FolderPlus, Sparkles } from 'lucide-react';
+import { Plus, Trash2, Play, Edit3, X, Save, Dumbbell, ChevronDown, ChevronUp, FolderPlus, Sparkles, GripVertical } from 'lucide-react';
 import PageWrapper from '../components/PageWrapper';
 import ExerciseSVG from '../components/ExerciseSVG';
 import RoutineWizard from '../components/RoutineWizard';
@@ -195,7 +195,7 @@ function RoutineCard({ routine, onStart, onEdit, onDelete }: {
           <button onClick={onStart} className="flex items-center gap-1 px-3 py-1.5 bg-[#D4FF00] text-[#0a0a0a] rounded-[2px] text-[10px] font-bold uppercase tracking-wider hover:brightness-110 transition-all">
             <Play size={12} /> Start
           </button>
-          <button onClick={onEdit} className="p-1.5 text-[#888888] hover:text-[#D4FF00] transition-colors"><Edit3 size={14} /></button>
+          <button onClick={onEdit} title="Edit routine" className="p-1.5 text-[#888888] hover:text-[#D4FF00] transition-colors"><Edit3 size={14} /></button>
           <button onClick={onDelete} className="p-1.5 text-[#888888] hover:text-[#ff4444] transition-colors"><Trash2 size={14} /></button>
         </div>
       </div>
@@ -233,6 +233,76 @@ export default function Routines() {
   const [routineName, setRoutineName] = useState('');
   const [routineGroupId, setRoutineGroupId] = useState<string | undefined>(undefined);
   const [routineExercises, setRoutineExercises] = useState<RoutineExercise[]>([]);
+
+  // ── Drag-to-reorder exercises within the routine form ──────────────────────
+  const [exDragIdx, setExDragIdx] = useState<number | null>(null);
+  const [exDragOverIdx, setExDragOverIdx] = useState<number | null>(null);
+  const activeExDragIdxRef = useRef<number | null>(null);
+
+  const reorderRoutineExercises = useCallback((fromIdx: number, toIdx: number) => {
+    if (fromIdx === toIdx) return;
+    setRoutineExercises((prev) => {
+      const arr = [...prev];
+      const [item] = arr.splice(fromIdx, 1);
+      arr.splice(toIdx, 0, item);
+      return arr;
+    });
+  }, []);
+
+  // Called from onPointerDown on the grip handle. Attaches document-level move/up
+  // listeners so events fire even when the pointer leaves the row, and non-passive
+  // touchmove prevents iOS scroll while dragging.
+  const handleExGripPointerDown = useCallback((e: React.PointerEvent, idx: number) => {
+    e.preventDefault();
+    if (activeExDragIdxRef.current !== null) return; // already dragging
+    activeExDragIdxRef.current = idx;
+    setExDragIdx(idx);
+
+    const getRowIdxAt = (x: number, y: number): { idx: number; rect: DOMRect } | null => {
+      for (const el of document.elementsFromPoint(x, y)) {
+        let t: Element | null = el;
+        while (t && !t.getAttribute('data-rex-idx')) t = t.parentElement;
+        if (t) {
+          const i = parseInt(t.getAttribute('data-rex-idx')!);
+          if (!isNaN(i)) return { idx: i, rect: t.getBoundingClientRect() };
+        }
+      }
+      return null;
+    };
+
+    const move = (x: number, y: number) => {
+      if (activeExDragIdxRef.current === null) return;
+      const hit = getRowIdxAt(x, y);
+      if (!hit || hit.idx === activeExDragIdxRef.current) return;
+      const relY = y - hit.rect.top;
+      const threshold = hit.rect.height * 0.4;
+      if (relY < threshold || relY > hit.rect.height - threshold) {
+        reorderRoutineExercises(activeExDragIdxRef.current, hit.idx);
+        activeExDragIdxRef.current = hit.idx;
+        setExDragIdx(hit.idx);
+        setExDragOverIdx(hit.idx);
+      }
+    };
+
+    const onPointerMove = (ev: PointerEvent) => { ev.preventDefault(); move(ev.clientX, ev.clientY); };
+    const onTouchMove  = (ev: TouchEvent)   => { ev.preventDefault(); move(ev.touches[0].clientX, ev.touches[0].clientY); };
+    const cleanup = () => {
+      activeExDragIdxRef.current = null;
+      setExDragIdx(null);
+      setExDragOverIdx(null);
+      document.removeEventListener('pointermove', onPointerMove);
+      document.removeEventListener('pointerup', cleanup);
+      document.removeEventListener('pointercancel', cleanup);
+      document.removeEventListener('touchmove', onTouchMove);
+      document.removeEventListener('touchend', cleanup);
+    };
+
+    document.addEventListener('pointermove', onPointerMove, { passive: false });
+    document.addEventListener('pointerup', cleanup);
+    document.addEventListener('pointercancel', cleanup);
+    document.addEventListener('touchmove', onTouchMove, { passive: false });
+    document.addEventListener('touchend', cleanup);
+  }, [reorderRoutineExercises]);
 
   const [showTemplates, setShowTemplates] = useState(false);
   const [showWizard, setShowWizard] = useState(false);
@@ -433,7 +503,7 @@ export default function Routines() {
 
         {/* Routine form */}
         {showForm && (
-          <div ref={formRef} className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-[2px] p-6 space-y-5">
+          <div ref={formRef} className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-[2px] p-4 sm:p-6 space-y-5">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold uppercase tracking-wider text-[#ffffff]">{editingId ? 'Edit Routine' : 'Create Routine'}</h2>
               <button onClick={resetForm} className="text-[#888888] hover:text-[#ffffff] transition-colors"><X size={20} /></button>
@@ -481,9 +551,9 @@ export default function Routines() {
               <div className="flex items-center gap-4 mb-2">
                 <label className="text-xs font-bold uppercase tracking-wider text-[#888888]">Exercises</label>
                 {routineExercises.length > 0 && (
-                  <div className="flex items-center gap-3 ml-auto mr-8 text-[10px] font-bold uppercase tracking-wider text-[#555555]">
-                    <span className="w-10 text-center">Sets</span>
-                    <span className="w-10 text-center">Reps</span>
+                  <div className="flex items-center gap-1.5 sm:gap-2 ml-auto mr-7 text-[10px] font-bold uppercase tracking-wider text-[#555555]">
+                    <span className="w-9 text-center">Sets</span>
+                    <span className="w-9 text-center">Reps</span>
                   </div>
                 )}
               </div>
@@ -492,20 +562,30 @@ export default function Routines() {
               ) : (
                 <div className="space-y-2 mb-3">
                   {routineExercises.map((re, idx) => (
-                    <div key={idx} className="flex items-center gap-3 bg-[#0a0a0a] border border-[#2a2a2a] rounded-[2px] p-3">
-                      <div className="w-8 h-8 bg-[#1f1f1f] border border-[#2a2a2a] rounded-[2px] overflow-hidden shrink-0">
+                    <div
+                      key={idx}
+                      data-rex-idx={idx}
+                      className={`flex items-center gap-1.5 sm:gap-2 bg-[#0a0a0a] border rounded-[2px] p-2 sm:p-3 transition-colors ${
+                        exDragOverIdx === idx && exDragIdx !== idx ? 'border-[#D4FF00]' : 'border-[#2a2a2a]'
+                      }`}
+                      style={{ opacity: exDragIdx === idx ? 0.5 : 1 }}
+                    >
+                      <div
+                        className="touch-none cursor-grab active:cursor-grabbing text-[#444444] hover:text-[#888888] transition-colors shrink-0 -ml-1 p-1 select-none"
+                        style={{ WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'none' }}
+                        onPointerDown={(e) => handleExGripPointerDown(e, idx)}
+                        onContextMenu={(e) => e.preventDefault()}
+                        title="Drag to reorder"
+                      >
+                        <GripVertical size={16} />
+                      </div>
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 bg-[#1f1f1f] border border-[#2a2a2a] rounded-[2px] overflow-hidden shrink-0">
                         <ExerciseSVG exerciseId={re.exerciseId} exerciseName={re.exerciseName} className="w-full h-full" />
                       </div>
-                      <span className="flex-1 text-sm font-bold text-[#ffffff] truncate">{re.exerciseName}</span>
-                      <div className="flex items-center gap-1 shrink-0">
-                        <NumericInput value={re.targetSets} min={1} max={20} onChange={(n) => setRoutineExercises((prev) => prev.map((e, i) => i === idx ? { ...e, targetSets: n } : e))} className="w-10 bg-[#1f1f1f] border border-[#2a2a2a] rounded-[2px] px-1 py-1 text-[#ffffff] text-sm text-center focus:outline-none focus:border-[#D4FF00]" />
-                        <span className="text-[10px] text-[#888888] uppercase w-5">s</span>
-                      </div>
-                      <div className="flex items-center gap-1 shrink-0">
-                        <NumericInput value={re.targetReps} min={1} max={999} onChange={(n) => setRoutineExercises((prev) => prev.map((e, i) => i === idx ? { ...e, targetReps: n } : e))} className="w-10 bg-[#1f1f1f] border border-[#2a2a2a] rounded-[2px] px-1 py-1 text-[#ffffff] text-sm text-center focus:outline-none focus:border-[#D4FF00]" />
-                        <span className="text-[10px] text-[#888888] uppercase w-5">r</span>
-                      </div>
-                      <button onClick={() => setRoutineExercises((prev) => prev.filter((_, i) => i !== idx))} className="text-[#888888] hover:text-[#ff4444] transition-colors p-1"><Trash2 size={14} /></button>
+                      <span className="flex-1 min-w-0 text-sm font-bold text-[#ffffff] truncate">{re.exerciseName}</span>
+                      <NumericInput value={re.targetSets} min={1} max={20} onChange={(n) => setRoutineExercises((prev) => prev.map((e, i) => i === idx ? { ...e, targetSets: n } : e))} className="w-9 shrink-0 bg-[#1f1f1f] border border-[#2a2a2a] rounded-[2px] px-1 py-1 text-[#ffffff] text-sm text-center focus:outline-none focus:border-[#D4FF00]" />
+                      <NumericInput value={re.targetReps} min={1} max={999} onChange={(n) => setRoutineExercises((prev) => prev.map((e, i) => i === idx ? { ...e, targetReps: n } : e))} className="w-9 shrink-0 bg-[#1f1f1f] border border-[#2a2a2a] rounded-[2px] px-1 py-1 text-[#ffffff] text-sm text-center focus:outline-none focus:border-[#D4FF00]" />
+                      <button onClick={() => setRoutineExercises((prev) => prev.filter((_, i) => i !== idx))} className="text-[#888888] hover:text-[#ff4444] transition-colors p-1 shrink-0"><Trash2 size={14} /></button>
                     </div>
                   ))}
                 </div>
