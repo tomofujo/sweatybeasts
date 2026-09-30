@@ -618,17 +618,17 @@ export default function Routines() {
                           <button onClick={() => setRoutineExercises((prev) => prev.filter((_, i) => i !== idx))} className="text-[#888888] hover:text-[#ff4444] transition-colors p-1 shrink-0"><Trash2 size={14} /></button>
                         </div>
                         {nextRe && (
-                          <div className="flex justify-center -my-1 relative z-10">
+                          <div className="flex justify-center -my-0.5 relative z-10">
                             <button
                               onClick={() => toggleRoutineSuperset(idx)}
                               title={isLinkedToNext ? 'Unlink superset' : 'Link as superset with next exercise'}
-                              className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider border transition-colors ${
+                              className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border transition-colors ${
                                 isLinkedToNext
                                   ? 'bg-[#D4FF00] text-[#0a0a0a] border-[#D4FF00]'
-                                  : 'bg-[#1a1a1a] text-[#555555] border-[#2a2a2a] hover:text-[#D4FF00] hover:border-[#D4FF00]/40'
+                                  : 'bg-[#1f1f1f] text-[#888888] border-[#2a2a2a] hover:text-[#D4FF00] hover:border-[#D4FF00]/60'
                               }`}
                             >
-                              {isLinkedToNext ? <Unlink size={10} /> : <Link2 size={10} />}
+                              {isLinkedToNext ? <Unlink size={11} /> : <Link2 size={11} />}
                               {isLinkedToNext ? 'Linked' : 'Superset'}
                             </button>
                           </div>
