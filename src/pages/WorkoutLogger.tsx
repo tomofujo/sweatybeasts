@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { flushSync } from 'react-dom';
 import { useLocation } from 'react-router-dom';
 import { Plus, Trash2, Search, Save, X, Trophy, AlertCircle, Link2, Unlink, ChevronDown, ChevronUp, GripVertical } from 'lucide-react';
 import PageWrapper from '../components/PageWrapper';
+import ConfirmDeleteButton from '../components/ConfirmDeleteButton';
 import ExerciseSVG from '../components/ExerciseSVG';
 import RestTimer from '../components/RestTimer';
 import SessionTimer from '../components/SessionTimer';
@@ -123,6 +124,7 @@ export default function WorkoutLogger() {
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
   const activeDragIdxRef = useRef<number | null>(null);
   const exercisesContainerRef = useRef<HTMLDivElement>(null);
+  const isDragging = dragIdx !== null;
 
   const reorderExercises = useCallback((fromIdx: number, toIdx: number) => {
     if (fromIdx === toIdx) return;
@@ -141,7 +143,16 @@ export default function WorkoutLogger() {
     e.preventDefault();
     if (activeDragIdxRef.current !== null) return; // already dragging
     activeDragIdxRef.current = idx;
-    setDragIdx(idx);
+
+    // Collapsing every card shifts the page; keep the grabbed card under the finger.
+    const grabbed = (e.currentTarget as HTMLElement).closest('[data-ex-idx]');
+    const topBefore = grabbed?.getBoundingClientRect().top ?? 0;
+    // Hold the list's height so the page doesn't shrink (and jump) while cards are collapsed
+    const container = exercisesContainerRef.current;
+    if (container) container.style.minHeight = `${container.offsetHeight}px`;
+    flushSync(() => setDragIdx(idx));
+    const after = document.querySelector(`[data-ex-idx="${idx}"]`);
+    if (grabbed && after) window.scrollBy(0, after.getBoundingClientRect().top - topBefore);
 
     const getExIdxAt = (x: number, y: number): { idx: number; rect: DOMRect } | null => {
       for (const el of document.elementsFromPoint(x, y)) {
@@ -174,6 +185,7 @@ export default function WorkoutLogger() {
     const cleanup = () => {
       activeDragIdxRef.current = null;
       setDragIdx(null);
+      if (container) container.style.minHeight = '';
       setDragOverIdx(null);
       document.removeEventListener('pointermove', onPointerMove);
       document.removeEventListener('pointerup',   cleanup);
@@ -723,7 +735,8 @@ export default function WorkoutLogger() {
         {/* ── Exercise list ───────────────────────────────────────────── */}
         <div ref={exercisesContainerRef} className="space-y-2">
           {exercises.map((ex, exIndex) => {
-            const isCollapsed = collapsedExercises.has(ex.id);
+            // While dragging, every card shrinks to its header row (like Routines) so reordering is short and predictable
+            const isCollapsed = isDragging || collapsedExercises.has(ex.id);
             const trackingMode = ex.trackingMode ?? 'reps';
             const isInSuperset = !!ex.supersetGroup;
             const prevEx = exIndex > 0 ? exercises[exIndex - 1] : null;
@@ -736,11 +749,8 @@ export default function WorkoutLogger() {
             );
 
             return (
-              <motion.div
+              <div
                 key={ex.id}
-                layout
-                layoutId={ex.id}
-                transition={{ duration: 0.08, ease: 'easeOut' }}
                 data-ex-idx={exIndex}
                 style={{ opacity: dragIdx === exIndex ? 0.5 : 1 }}
               >
@@ -823,13 +833,12 @@ export default function WorkoutLogger() {
                       {isLinkedToNext ? <Unlink size={16} /> : <Link2 size={16} />}
                     </button>
                   )}
-                  <button
-                    onClick={() => removeExercise(ex.id)}
-                    className="text-[#888888] hover:text-[#ff4444] transition-colors p-1"
+                  <ConfirmDeleteButton
+                    onConfirm={() => removeExercise(ex.id)}
                     title="Remove exercise"
-                  >
-                    <Trash2 size={16} />
-                  </button>
+                    iconSize={16}
+                    compact
+                  />
                   {/* Collapse toggle */}
                   <button
                     onClick={() => toggleCollapse(ex.id)}
@@ -922,13 +931,11 @@ export default function WorkoutLogger() {
                           />
                         </td>
                         <td className="px-4 py-2 text-center">
-                          <button
-                            onClick={() => removeSet(ex.id, set.id)}
-                            className="text-[#888888] hover:text-[#ff4444] transition-colors p-1"
+                          <ConfirmDeleteButton
+                            onConfirm={() => removeSet(ex.id, set.id)}
                             title="Delete set"
-                          >
-                            <Trash2 size={14} />
-                          </button>
+                            compact
+                          />
                         </td>
                       </tr>
                     ))}
@@ -949,7 +956,7 @@ export default function WorkoutLogger() {
                 </>
               )}
                 </div>
-              </motion.div>
+              </div>
             );
           })}
         </div>

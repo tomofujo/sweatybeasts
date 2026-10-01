@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Calendar, List, Trash2, Copy, Edit3, ChevronLeft, ChevronRight, Dumbbell, Zap, X, Save } from 'lucide-react';
+import { Calendar, List, Copy, Edit3, ChevronLeft, ChevronRight, Dumbbell, Zap, X, Save } from 'lucide-react';
 import PageWrapper from '../components/PageWrapper';
+import ConfirmDeleteButton from '../components/ConfirmDeleteButton';
 import { getWorkouts, saveWorkouts, getActivities, saveActivities, getSettings, getRoutines, saveRoutines } from '../utils/storage';
 import { kgToDisplay } from '../utils/units';
 import type { Workout, Activity, AppSettings } from '../types';
@@ -44,7 +45,6 @@ export default function History() {
   const [activityTypeFilter, setActivityTypeFilter] = useState('');
   const [selectedSession, setSelectedSession] = useState<SessionRef | null>(null);
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [saveRoutineWorkoutId, setSaveRoutineWorkoutId] = useState<string | null>(null);
   const [saveRoutineName, setSaveRoutineName] = useState('');
@@ -222,7 +222,6 @@ export default function History() {
       setActivities(updated);
     }
     setSelectedSession(null);
-    setDeleteConfirm(null);
   }
 
   function handleDuplicate(sessionRef: SessionRef) {
@@ -351,15 +350,11 @@ export default function History() {
                 <Copy size={14} />
                 DUPLICATE
               </button>
-              <button
-                onClick={() => setDeleteConfirm(selectedSession!.id)}
-                className="flex items-center justify-center gap-2 px-4 py-3 font-bold uppercase tracking-wider text-xs transition-colors cursor-pointer"
-                style={{ backgroundColor: 'transparent', color: '#ff4444', border: '1px solid #ff4444', borderRadius: '2px' }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,68,68,0.1)')}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-              >
-                <Trash2 size={14} />
-              </button>
+              <ConfirmDeleteButton
+                onConfirm={() => handleDelete(selectedSession!)}
+                title="Delete session"
+                className="flex items-center justify-center gap-2 px-4 py-3 font-bold uppercase tracking-wider text-xs transition-colors cursor-pointer text-[#ff4444] border border-[#ff4444] rounded-[2px] hover:bg-[#ff4444]/10"
+              />
             </div>
           </div>
         </div>
@@ -421,35 +416,6 @@ export default function History() {
           </div>
         )}
 
-        {/* Delete confirmation modal */}
-        {deleteConfirm && (
-          <div className="fixed inset-0 z-60 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.9)' }}>
-            <div className="w-full max-w-sm p-6 space-y-4" style={{ backgroundColor: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: '2px' }}>
-              <h4 className="font-bold uppercase tracking-wider text-sm" style={{ color: '#ffffff' }}>
-                CONFIRM DELETION
-              </h4>
-              <p className="text-sm" style={{ color: '#888888' }}>
-                Are you sure you want to delete this session? This action cannot be undone.
-              </p>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setDeleteConfirm(null)}
-                  className="flex-1 px-4 py-3 font-bold uppercase tracking-wider text-xs transition-colors cursor-pointer"
-                  style={{ backgroundColor: '#1f1f1f', color: '#ffffff', border: '1px solid #2a2a2a', borderRadius: '2px' }}
-                >
-                  CANCEL
-                </button>
-                <button
-                  onClick={() => handleDelete(selectedSession!)}
-                  className="flex-1 px-4 py-3 font-bold uppercase tracking-wider text-xs transition-colors cursor-pointer"
-                  style={{ backgroundColor: '#ff4444', color: '#ffffff', borderRadius: '2px' }}
-                >
-                  DELETE
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     );
   }
