@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Plus, Trash2, Edit3, Save, X, ChevronDown } from 'lucide-react';
 import PageWrapper from '../components/PageWrapper';
 import ExerciseSVG from '../components/ExerciseSVG';
@@ -32,6 +32,12 @@ export default function ExerciseBuilder() {
   const [instructions, setInstructions] = useState<string[]>(['']);
   const [imageUrl, setImageUrl] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const formRef = useRef<HTMLDivElement>(null);
+
+  // Bring the form into view whenever it opens or switches exercise
+  useEffect(() => {
+    if (showForm) formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, [showForm, editingId]);
 
   useEffect(() => {
     const stored = getExercises();
@@ -64,6 +70,8 @@ export default function ExerciseBuilder() {
 
   function openCreateForm() {
     resetForm();
+    setDeleteConfirm(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     setShowForm(true);
   }
 
@@ -75,6 +83,7 @@ export default function ExerciseBuilder() {
     setDescription(ex.description);
     setInstructions(ex.instructions.length > 0 ? [...ex.instructions] : ['']);
     setImageUrl(ex.imageUrl ?? '');
+    setDeleteConfirm(null);
     setEditingId(ex.id);
     setShowForm(true);
   }
@@ -139,63 +148,8 @@ export default function ExerciseBuilder() {
     setSecondaryMuscles((prev) => prev.filter((m) => m !== muscleGroup));
   }, [muscleGroup]);
 
-  return (
-    <PageWrapper>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold uppercase tracking-wider text-[#ffffff]">
-            Exercise Library
-          </h1>
-          <button
-            onClick={openCreateForm}
-            className="flex items-center gap-2 bg-[#D4FF00] text-[#0a0a0a] px-4 py-2 rounded-[2px] font-bold uppercase tracking-wider text-sm hover:brightness-110 transition-all"
-          >
-            <Plus size={18} />
-            Create Exercise
-          </button>
-        </div>
-
-        {/* Search & Filter Bar */}
-        <div className="flex flex-col sm:flex-row gap-3">
-          <input
-            type="text"
-            placeholder="Search exercises..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1 bg-[#1a1a1a] border border-[#2a2a2a] text-[#ffffff] placeholder-[#888888] px-4 py-2.5 rounded-[2px] text-sm focus:outline-none focus:border-[#D4FF00] transition-colors"
-          />
-          <div className="relative">
-            <select
-              value={muscleFilter}
-              onChange={(e) => setMuscleFilter(e.target.value)}
-              className="appearance-none bg-[#1a1a1a] border border-[#2a2a2a] text-[#ffffff] px-4 py-2.5 pr-10 rounded-[2px] text-sm focus:outline-none focus:border-[#D4FF00] transition-colors cursor-pointer w-full sm:w-auto"
-            >
-              <option value="">All Muscles</option>
-              {MUSCLE_GROUPS.map((mg) => (
-                <option key={mg} value={mg}>{mg}</option>
-              ))}
-            </select>
-            <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#888888] pointer-events-none" />
-          </div>
-          <div className="relative">
-            <select
-              value={equipmentFilter}
-              onChange={(e) => setEquipmentFilter(e.target.value)}
-              className="appearance-none bg-[#1a1a1a] border border-[#2a2a2a] text-[#ffffff] px-4 py-2.5 pr-10 rounded-[2px] text-sm focus:outline-none focus:border-[#D4FF00] transition-colors cursor-pointer w-full sm:w-auto"
-            >
-              <option value="">All Equipment</option>
-              {EQUIPMENT_OPTIONS.map((eq) => (
-                <option key={eq} value={eq}>{eq}</option>
-              ))}
-            </select>
-            <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#888888] pointer-events-none" />
-          </div>
-        </div>
-
-        {/* Create / Edit Form */}
-        {showForm && (
-          <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-[2px] p-6 space-y-5">
+  const formJsx = (
+          <div ref={formRef} className="bg-[#1a1a1a] border border-[#D4FF00]/40 rounded-[2px] p-6 space-y-5 scroll-mt-4">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold uppercase tracking-wider text-[#ffffff]">
                 {editingId ? 'Edit Exercise' : 'Create Exercise'}
@@ -371,102 +325,179 @@ export default function ExerciseBuilder() {
               </button>
             </div>
           </div>
-        )}
+  );
+
+  const builtInList = filteredExercises.filter((ex) => !ex.isCustom);
+  const customList = filteredExercises.filter((ex) => ex.isCustom);
+
+  function renderRow(ex: Exercise) {
+    const confirming = deleteConfirm === ex.id;
+    return (
+      <div key={ex.id}>
+        <div
+          className={`bg-[#1a1a1a] border rounded-[2px] p-4 flex items-center gap-4 transition-colors ${
+            confirming ? 'border-[#ff4444]' : editingId === ex.id ? 'border-[#D4FF00]' : 'border-[#2a2a2a] hover:border-[#D4FF00]/30'
+          }`}
+        >
+          {/* SVG Icon */}
+          <div className="hidden sm:block w-12 h-12 flex-shrink-0 bg-[#0a0a0a] rounded-[2px] border border-[#2a2a2a] overflow-hidden">
+            <ExerciseSVG exerciseId={ex.id} className="w-full h-full" />
+          </div>
+
+          {/* Info */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="text-[#ffffff] font-bold text-sm truncate">{ex.name}</span>
+              {ex.isCustom && (
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#0a0a0a] bg-[#D4FF00] px-1.5 py-0.5 rounded-[2px] flex-shrink-0">
+                  Custom
+                </span>
+              )}
+            </div>
+            {confirming ? (
+              <p className="text-xs text-[#ff4444] mt-1 font-bold">Delete? Can't be undone.</p>
+            ) : (
+              <div className="flex items-center gap-3 mt-1">
+                <span className="text-xs text-[#888888]">{ex.muscleGroup}</span>
+                <span className="text-[#2a2a2a]">&middot;</span>
+                <span className="text-xs text-[#888888]">{ex.equipment}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Actions (custom only) */}
+          {ex.isCustom && (
+            confirming ? (
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <button
+                  onClick={() => handleDelete(ex.id)}
+                  className="flex items-center gap-1.5 bg-[#ff4444] text-[#ffffff] px-3 py-1.5 rounded-[2px] font-bold uppercase tracking-wider text-xs hover:brightness-110 transition-all"
+                >
+                  <Trash2 size={13} />
+                  Delete
+                </button>
+                <button
+                  onClick={() => setDeleteConfirm(null)}
+                  className="px-3 py-1.5 rounded-[2px] font-bold uppercase tracking-wider text-xs text-[#888888] border border-[#2a2a2a] hover:text-[#ffffff] hover:border-[#888888] transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <button
+                  onClick={() => openEditForm(ex)}
+                  className="p-2 text-[#888888] hover:text-[#D4FF00] transition-colors"
+                  title="Edit exercise"
+                >
+                  <Edit3 size={16} />
+                </button>
+                <button
+                  onClick={() => { setDeleteConfirm(ex.id); }}
+                  className="p-2 text-[#888888] hover:text-[#ff4444] transition-colors"
+                  title="Delete exercise"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            )
+          )}
+        </div>
+        {showForm && editingId === ex.id && <div className="mt-2">{formJsx}</div>}
+      </div>
+    );
+  }
+
+  return (
+    <PageWrapper>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold uppercase tracking-wider text-[#ffffff]">
+            Exercise Library
+          </h1>
+          <button
+            onClick={openCreateForm}
+            className="flex items-center gap-2 bg-[#D4FF00] text-[#0a0a0a] px-4 py-2 rounded-[2px] font-bold uppercase tracking-wider text-sm hover:brightness-110 transition-all"
+          >
+            <Plus size={18} />
+            Create Exercise
+          </button>
+        </div>
+
+        {/* Search & Filter Bar */}
+        <div className="flex flex-col sm:flex-row gap-3">
+          <input
+            type="text"
+            placeholder="Search exercises..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="flex-1 bg-[#1a1a1a] border border-[#2a2a2a] text-[#ffffff] placeholder-[#888888] px-4 py-2.5 rounded-[2px] text-sm focus:outline-none focus:border-[#D4FF00] transition-colors"
+          />
+          <div className="relative">
+            <select
+              value={muscleFilter}
+              onChange={(e) => setMuscleFilter(e.target.value)}
+              className="appearance-none bg-[#1a1a1a] border border-[#2a2a2a] text-[#ffffff] px-4 py-2.5 pr-10 rounded-[2px] text-sm focus:outline-none focus:border-[#D4FF00] transition-colors cursor-pointer w-full sm:w-auto"
+            >
+              <option value="">All Muscles</option>
+              {MUSCLE_GROUPS.map((mg) => (
+                <option key={mg} value={mg}>{mg}</option>
+              ))}
+            </select>
+            <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#888888] pointer-events-none" />
+          </div>
+          <div className="relative">
+            <select
+              value={equipmentFilter}
+              onChange={(e) => setEquipmentFilter(e.target.value)}
+              className="appearance-none bg-[#1a1a1a] border border-[#2a2a2a] text-[#ffffff] px-4 py-2.5 pr-10 rounded-[2px] text-sm focus:outline-none focus:border-[#D4FF00] transition-colors cursor-pointer w-full sm:w-auto"
+            >
+              <option value="">All Equipment</option>
+              {EQUIPMENT_OPTIONS.map((eq) => (
+                <option key={eq} value={eq}>{eq}</option>
+              ))}
+            </select>
+            <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#888888] pointer-events-none" />
+          </div>
+        </div>
+
+        {/* Create Form (top) */}
+        {showForm && !editingId && formJsx}
 
         {/* Exercise List */}
         {filteredExercises.length === 0 ? (
           <div className="text-center py-16">
             <p className="text-[#888888] font-bold uppercase tracking-wider text-sm">
-              No exercises found. Create your own below.
+              No exercises found. Create your own above.
             </p>
           </div>
         ) : (
-          <div className="space-y-2">
-            {filteredExercises.map((ex) => (
-              <div
-                key={ex.id}
-                className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-[2px] p-4 flex items-center gap-4 hover:border-[#D4FF00]/30 transition-colors"
-              >
-                {/* SVG Icon */}
-                <div className="hidden sm:block w-12 h-12 flex-shrink-0 bg-[#0a0a0a] rounded-[2px] border border-[#2a2a2a] overflow-hidden">
-                  <ExerciseSVG exerciseId={ex.id} className="w-full h-full" />
-                </div>
-
-                {/* Info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[#ffffff] font-bold text-sm truncate">
-                      {ex.name}
-                    </span>
-                    {ex.isCustom && (
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#0a0a0a] bg-[#D4FF00] px-1.5 py-0.5 rounded-[2px] flex-shrink-0">
-                        Custom
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-3 mt-1">
-                    <span className="text-xs text-[#888888]">{ex.muscleGroup}</span>
-                    <span className="text-[#2a2a2a]">&middot;</span>
-                    <span className="text-xs text-[#888888]">{ex.equipment}</span>
-                  </div>
-                </div>
-
-                {/* Actions (custom only) */}
-                {ex.isCustom && (
-                  <div className="flex items-center gap-1 flex-shrink-0">
-                    <button
-                      onClick={() => openEditForm(ex)}
-                      className="p-2 text-[#888888] hover:text-[#D4FF00] transition-colors"
-                      title="Edit exercise"
-                    >
-                      <Edit3 size={16} />
-                    </button>
-                    <button
-                      onClick={() => setDeleteConfirm(ex.id)}
-                      className="p-2 text-[#888888] hover:text-[#ff4444] transition-colors"
-                      title="Delete exercise"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
+          <div className="space-y-2">{builtInList.map(renderRow)}</div>
         )}
 
-        {/* Delete Confirmation Dialog */}
-        {deleteConfirm && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
-            <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-[2px] p-6 max-w-sm w-full mx-4 space-y-4">
-              <h3 className="text-base font-bold uppercase tracking-wider text-[#ffffff]">
-                Delete Exercise?
-              </h3>
-              <p className="text-sm text-[#888888]">
-                Are you sure you want to delete{' '}
-                <span className="text-[#ffffff] font-bold">
-                  {exercises.find((ex) => ex.id === deleteConfirm)?.name}
-                </span>
-                ? This action cannot be undone.
-              </p>
-              <div className="flex items-center gap-3 pt-1">
-                <button
-                  onClick={() => handleDelete(deleteConfirm)}
-                  className="flex items-center gap-2 bg-[#ff4444] text-[#ffffff] px-4 py-2 rounded-[2px] font-bold uppercase tracking-wider text-sm hover:brightness-110 transition-all"
-                >
-                  <Trash2 size={14} />
-                  Delete
-                </button>
-                <button
-                  onClick={() => setDeleteConfirm(null)}
-                  className="px-4 py-2 rounded-[2px] font-bold uppercase tracking-wider text-sm text-[#888888] border border-[#2a2a2a] hover:text-[#ffffff] hover:border-[#888888] transition-colors"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
+        {/* Custom Exercises */}
+        <div className="pt-4 border-t border-[#2a2a2a] space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold uppercase tracking-wider text-[#ffffff]">
+              Custom Exercises <span className="text-[#D4FF00]">({customList.length})</span>
+            </h2>
+            <button
+              onClick={openCreateForm}
+              className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#D4FF00] hover:brightness-110 transition-all"
+            >
+              <Plus size={14} />
+              Add
+            </button>
           </div>
-        )}
+          {customList.length === 0 ? (
+            <p className="text-sm text-[#888888]">
+              {exercises.some((ex) => ex.isCustom) ? 'No custom exercises match your filters.' : 'No custom exercises yet.'}
+            </p>
+          ) : (
+            <div className="space-y-2">{customList.map(renderRow)}</div>
+          )}
+        </div>
       </div>
     </PageWrapper>
   );
