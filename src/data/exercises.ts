@@ -1213,4 +1213,390 @@ export const builtInExercises: Exercise[] = [
     ],
     isCustom: false,
   },
+
+  // ─── Legs (machines) ─────────────────────────────────────────────────────────
+
+  {
+    id: 'hip-adduction-machine',
+    name: 'Hip Adduction (Machine)',
+    muscleGroup: 'Legs',
+    secondaryMuscles: [],
+    equipment: 'Machine',
+    description:
+      'A seated machine exercise that isolates the hip adductors (inner thigh) through resisted leg closure. Useful for building inner-thigh strength and knee stability.',
+    instructions: [
+      'Sit in the machine with your back against the pad and the leg pads against the outside of your knees.',
+      'Set the machine to a comfortably wide starting position.',
+      'Squeeze your inner thighs together to bring your knees towards the midline, pausing briefly at full contraction.',
+      'Allow the pads to return under control to the starting position without letting the weight stack slam.',
+    ],
+    isCustom: false,
+  },
+  {
+    id: 'hip-abduction-machine',
+    name: 'Hip Abduction (Machine)',
+    muscleGroup: 'Legs',
+    secondaryMuscles: ['Core'],
+    equipment: 'Machine',
+    description:
+      'A seated machine exercise that isolates the hip abductors and glute medius by pushing the legs outward against resistance. Commonly used for hip stability and glute development.',
+    instructions: [
+      'Sit in the machine with your back against the pad and the leg pads against the outside of your knees.',
+      "Start with your knees together in the machine's innermost position.",
+      'Push your knees outward against the resistance as far as comfortably possible.',
+      'Return under control to the starting position, resisting the weight stack the whole way.',
+    ],
+    isCustom: false,
+  },
+  {
+    id: 'seated-calf-raise',
+    name: 'Seated Calf Raise',
+    muscleGroup: 'Legs',
+    secondaryMuscles: [],
+    equipment: 'Machine',
+    description:
+      'A seated machine exercise that targets the soleus, the deeper calf muscle, by performing the raise with a bent knee. Complements standing calf work for complete lower-leg development.',
+    instructions: [
+      'Sit in the machine with the balls of your feet on the footplate and the knee pads resting just above your knees.',
+      'Lower your heels as far as comfortably possible to feel a deep stretch in the calves.',
+      'Press through the balls of your feet to raise your heels as high as possible.',
+      'Pause briefly at the top, then lower under control back to the stretched position.',
+    ],
+    isCustom: false,
+  },
+  {
+    id: 'standing-calf-raise',
+    name: 'Standing Calf Raise',
+    muscleGroup: 'Legs',
+    secondaryMuscles: [],
+    equipment: 'Machine',
+    description:
+      'A standing machine exercise that targets the gastrocnemius, the larger outer calf muscle, through a full range of ankle extension under load.',
+    instructions: [
+      'Position your shoulders under the pads and the balls of your feet on the platform, with your heels hanging off the edge.',
+      'Lower your heels as far as possible to feel a stretch through the calves.',
+      'Drive up onto your toes, extending your ankles as high as possible.',
+      'Pause at the top, then lower back under control.',
+    ],
+    isCustom: false,
+  },
+  {
+    id: 'belt-squat',
+    name: 'Belt Squat (Machine)',
+    muscleGroup: 'Legs',
+    secondaryMuscles: ['Core'],
+    equipment: 'Machine',
+    description:
+      'A squat variation that loads the hips through a belt rather than the spine, removing axial loading on the back. Lets you train the legs hard with less lower-back fatigue.',
+    instructions: [
+      'Clip the belt around your hips and stand on the platforms with feet shoulder-width apart.',
+      'Brace your core and squat down by bending your knees and hips, keeping your torso upright.',
+      'Descend until your thighs are at least parallel to the floor.',
+      'Drive through your feet to stand back up to the starting position.',
+    ],
+    isCustom: false,
+  },
+  {
+    id: 'hack-squat',
+    name: 'Hack Squat (Machine)',
+    muscleGroup: 'Legs',
+    secondaryMuscles: ['Core'],
+    equipment: 'Machine',
+    description:
+      'A guided squat machine performed on an angled sled that heavily emphasises the quadriceps. The fixed path makes it a safer, more joint-friendly alternative to the free-weight squat.',
+    instructions: [
+      'Position yourself on the sled with your shoulders under the pads and feet shoulder-width apart on the platform.',
+      'Release the safety handles and lower yourself by bending your knees, keeping your back flat against the pad.',
+      'Descend until your thighs are at least parallel to the platform.',
+      'Push through your heels to drive back up to the starting position.',
+    ],
+    isCustom: false,
+  },
+  {
+    id: 'kneeling-leg-curl',
+    name: 'Kneeling Leg Curl (Machine)',
+    muscleGroup: 'Legs',
+    secondaryMuscles: [],
+    equipment: 'Machine',
+    description:
+      'A hamstring isolation machine performed from a kneeling position, which changes the hip angle compared to seated or lying variations for a slightly different hamstring emphasis.',
+    instructions: [
+      'Kneel on the pad with the backs of your ankles under the roller pad.',
+      'Brace your core and keep your hips extended throughout the movement.',
+      'Curl your heels up towards your glutes by contracting your hamstrings.',
+      'Lower back down under control to the starting position.',
+    ],
+    isCustom: false,
+  },
+  {
+    id: 'prone-leg-curl',
+    name: 'Prone Leg Curl (Machine)',
+    muscleGroup: 'Legs',
+    secondaryMuscles: [],
+    equipment: 'Machine',
+    description:
+      'A hamstring isolation machine performed lying face down, which fully isolates the hamstrings without hip involvement. A gym staple for building rear-leg strength.',
+    instructions: [
+      'Lie face down on the bench with the backs of your ankles under the roller pad.',
+      'Grip the handles and keep your hips pressed flat against the bench.',
+      'Curl your heels up towards your glutes by contracting your hamstrings.',
+      'Lower back down under control to the starting position.',
+    ],
+    isCustom: false,
+  },
+
+  // ─── Back (machines) ─────────────────────────────────────────────────────────
+
+  {
+    id: 'machine-pullover',
+    name: 'Machine Pullover',
+    muscleGroup: 'Back',
+    secondaryMuscles: ['Chest'],
+    equipment: 'Machine',
+    description:
+      'A selectorized machine that replicates the dumbbell pullover, stretching and contracting the lats through an overhead arm movement. Great for lat width and shoulder mobility.',
+    instructions: [
+      'Sit in the machine with your back against the pad and grip the handles above your head.',
+      'Keeping a slight bend in your elbows, pull the handles down and forward in an arc towards your hips.',
+      'Squeeze your lats hard at the bottom of the movement.',
+      'Allow the handles to return under control back to the overhead starting position.',
+    ],
+    isCustom: false,
+  },
+  {
+    id: 'high-row-machine',
+    name: 'High Row (Machine)',
+    muscleGroup: 'Back',
+    secondaryMuscles: ['Shoulders', 'Arms'],
+    equipment: 'Machine',
+    description:
+      'A selectorized row performed from a high angle that targets the upper back and rear delts more than a standard horizontal row. Pairs well with lat pulldowns for complete back development.',
+    instructions: [
+      'Sit in the machine with your chest against the pad and grip the handles above shoulder height.',
+      'Pull the handles back towards you, driving your elbows down and back.',
+      'Squeeze your shoulder blades together at the end of the movement.',
+      'Extend your arms back out under control to the starting position.',
+    ],
+    isCustom: false,
+  },
+  {
+    id: 'assisted-pull-up',
+    name: 'Assisted Pull-Up',
+    muscleGroup: 'Back',
+    secondaryMuscles: ['Arms'],
+    equipment: 'Machine',
+    description:
+      'An assisted machine that counterbalances part of your bodyweight, making the pull-up accessible to those still building the strength for a full unassisted rep.',
+    instructions: [
+      'Select an assistance weight on the stack — more weight means more assistance.',
+      'Kneel or stand on the platform and grip the handles with an overhand grip.',
+      'Pull yourself up until your chin clears the handles.',
+      'Lower back down under control to a full arm extension.',
+    ],
+    isCustom: false,
+  },
+  {
+    id: 'back-extension-machine',
+    name: 'Back Extension (Machine)',
+    muscleGroup: 'Back',
+    secondaryMuscles: ['Legs'],
+    equipment: 'Machine',
+    description:
+      'A pin-loaded machine version of the hyperextension that lets you add external resistance to the lower back and glutes. More adjustable and progressive than a bodyweight back extension bench.',
+    instructions: [
+      'Adjust the machine so your hips are at the edge of the pad and your feet are secured.',
+      'Cross your arms over your chest or hold the handles, depending on the machine.',
+      'Lower your torso forward by bending at the hips, keeping your back flat.',
+      'Extend back up by driving your hips forward and squeezing your glutes and lower back.',
+    ],
+    isCustom: false,
+  },
+
+  // ─── Shoulders (machines) ────────────────────────────────────────────────────
+
+  {
+    id: 'reverse-pec-deck',
+    name: 'Reverse Pec Deck',
+    muscleGroup: 'Shoulders',
+    secondaryMuscles: ['Back'],
+    equipment: 'Machine',
+    description:
+      'A machine that isolates the rear deltoids and upper back through a reverse-fly motion. One of the most effective ways to build the often-neglected rear delts.',
+    instructions: [
+      'Sit facing the pad with your chest against it and grip the handles in front of you.',
+      'Keeping a slight bend in your elbows, pull your arms out and back in a wide arc.',
+      'Squeeze your shoulder blades together and pause briefly.',
+      'Return your arms forward under control to the starting position.',
+    ],
+    isCustom: false,
+  },
+  {
+    id: 'shoulder-press-machine',
+    name: 'Shoulder Press (Machine)',
+    muscleGroup: 'Shoulders',
+    secondaryMuscles: ['Arms'],
+    equipment: 'Machine',
+    description:
+      'A selectorized overhead press that guides the movement path, letting you load the shoulders and triceps heavily with reduced stabiliser demand.',
+    instructions: [
+      'Sit in the machine with your back against the pad and grip the handles at shoulder height.',
+      'Press the handles straight overhead until your arms are fully extended.',
+      'Pause briefly at the top without locking out aggressively.',
+      'Lower back down under control to shoulder height.',
+    ],
+    isCustom: false,
+  },
+  {
+    id: 'lateral-raise-machine',
+    name: 'Lateral Raise (Machine)',
+    muscleGroup: 'Shoulders',
+    secondaryMuscles: [],
+    equipment: 'Machine',
+    description:
+      'A machine version of the lateral raise that isolates the side delts with a fixed, controlled path. Removes the need to manage momentum, making it easier to keep tension on the muscle.',
+    instructions: [
+      'Sit in the machine with your back against the pad and the outside of your upper arms against the pads.',
+      'Keeping a slight bend in your elbows, raise your arms out to the sides until roughly shoulder height.',
+      'Pause briefly at the top of the movement.',
+      'Lower back down under control to the starting position.',
+    ],
+    isCustom: false,
+  },
+
+  // ─── Chest (machines) ────────────────────────────────────────────────────────
+
+  {
+    id: 'machine-chest-press',
+    name: 'Chest Press (Machine)',
+    muscleGroup: 'Chest',
+    secondaryMuscles: ['Shoulders', 'Arms'],
+    equipment: 'Machine',
+    description:
+      'A selectorized horizontal press that targets the chest, shoulders and triceps with a fixed, stable movement path. A joint-friendly alternative to the barbell bench press.',
+    instructions: [
+      'Sit in the machine with your back against the pad and grip the handles at chest height.',
+      'Press the handles forward until your arms are fully extended, without locking out aggressively.',
+      'Pause briefly at full extension.',
+      'Return the handles under control back to your chest.',
+    ],
+    isCustom: false,
+  },
+  {
+    id: 'incline-chest-press-machine',
+    name: 'Incline Chest Press (Machine)',
+    muscleGroup: 'Chest',
+    secondaryMuscles: ['Shoulders', 'Arms'],
+    equipment: 'Machine',
+    description:
+      'A selectorized press performed on an incline path that shifts emphasis to the upper chest. The guided path makes it easy to isolate the muscle without worrying about stabilisation.',
+    instructions: [
+      'Sit in the machine with your back against the inclined pad and grip the handles above chest height.',
+      'Press the handles up and forward until your arms are fully extended.',
+      'Pause briefly at full extension.',
+      'Return the handles under control back to the starting position.',
+    ],
+    isCustom: false,
+  },
+  {
+    id: 'decline-chest-press-machine',
+    name: 'Decline Chest Press (Machine)',
+    muscleGroup: 'Chest',
+    secondaryMuscles: ['Shoulders', 'Arms'],
+    equipment: 'Machine',
+    description:
+      'A selectorized press performed on a decline path that shifts emphasis to the lower chest. Offers a joint-friendly way to train a region often missed by flat and incline pressing.',
+    instructions: [
+      'Sit in the machine with your back against the declined pad and grip the handles at chest height.',
+      'Press the handles forward and down until your arms are fully extended.',
+      'Pause briefly at full extension.',
+      'Return the handles under control back to the starting position.',
+    ],
+    isCustom: false,
+  },
+  {
+    id: 'assisted-dip',
+    name: 'Assisted Dip',
+    muscleGroup: 'Chest',
+    secondaryMuscles: ['Shoulders', 'Arms'],
+    equipment: 'Machine',
+    description:
+      'An assisted machine that counterbalances part of your bodyweight, making the dip accessible to those still building the strength for full unassisted reps.',
+    instructions: [
+      'Select an assistance weight on the stack — more weight means more assistance.',
+      'Step onto the platform and grip the handles with your arms straight.',
+      'Lower yourself by bending your elbows until your upper arms are roughly parallel to the floor.',
+      'Press back up to the starting position by driving through your palms.',
+    ],
+    isCustom: false,
+  },
+
+  // ─── Arms (machines) ─────────────────────────────────────────────────────────
+
+  {
+    id: 'bicep-curl-machine',
+    name: 'Bicep Curl (Machine)',
+    muscleGroup: 'Arms',
+    secondaryMuscles: [],
+    equipment: 'Machine',
+    description:
+      'A selectorized curl that isolates the biceps with a fixed resistance curve, removing the need to stabilise the weight. A reliable way to add volume to arm day.',
+    instructions: [
+      'Sit in the machine with your upper arms resting on the pad and grip the handles with an underhand grip.',
+      'Curl the handles up towards your shoulders by contracting your biceps.',
+      'Squeeze at the top of the movement.',
+      'Lower back down under control to a full stretch.',
+    ],
+    isCustom: false,
+  },
+  {
+    id: 'triceps-extension-machine',
+    name: 'Triceps Extension (Machine)',
+    muscleGroup: 'Arms',
+    secondaryMuscles: [],
+    equipment: 'Machine',
+    description:
+      'A selectorized machine that isolates the triceps through an extension motion, offering a joint-friendly alternative to overhead or cable tricep work.',
+    instructions: [
+      'Sit in the machine with your upper arms resting on the pad and grip the handles.',
+      'Extend your arms by straightening your elbows against the resistance.',
+      'Squeeze your triceps hard at full extension.',
+      'Bend your elbows back under control to the starting position.',
+    ],
+    isCustom: false,
+  },
+
+  // ─── Core (machines) ─────────────────────────────────────────────────────────
+
+  {
+    id: 'ab-crunch-machine',
+    name: 'Ab Crunch (Machine)',
+    muscleGroup: 'Core',
+    secondaryMuscles: [],
+    equipment: 'Machine',
+    description:
+      'A selectorized machine that loads the abdominal crunch with external resistance, letting you progressively overload your abs beyond what bodyweight crunches allow.',
+    instructions: [
+      'Sit in the machine and position the pads against your chest or shoulders, depending on the model.',
+      'Brace your core and curl your torso forward and down against the resistance.',
+      'Squeeze your abs hard at the bottom of the movement.',
+      'Return under control back to the starting position without losing tension.',
+    ],
+    isCustom: false,
+  },
+  {
+    id: 'rotary-torso',
+    name: 'Rotary Torso (Machine)',
+    muscleGroup: 'Core',
+    secondaryMuscles: [],
+    equipment: 'Machine',
+    description:
+      'A selectorized machine that trains rotational core strength by resisting a seated trunk twist. Useful for building the obliques and rotational power for sports.',
+    instructions: [
+      'Sit in the machine with your feet secured and grip the handles at chest height.',
+      'Brace your core and rotate your torso to one side against the resistance.',
+      'Pause briefly at the end of the rotation.',
+      'Return under control through the centre and continue into the opposite side.',
+    ],
+    isCustom: false,
+  },
 ];

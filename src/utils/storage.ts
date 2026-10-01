@@ -1,5 +1,6 @@
 import type { Exercise, Workout, Activity, AppSettings, PersonalBest, WorkoutExercise } from '../types';
 import { DEFAULT_SETTINGS } from '../types';
+import { builtInExercises } from '../data/exercises';
 
 const KEYS = {
   exercises: 'sb_exercises',
@@ -32,8 +33,19 @@ function set<T>(key: string, value: T): void {
 }
 
 // Exercises
+// Reconciles stored exercises with the current built-in library so any new
+// built-ins shipped in an app update reach existing users automatically —
+// without this, a returning user's localStorage snapshot of the old library
+// would permanently shadow newly added exercises, since they'd never hit the
+// "seed when empty" path the callers use for brand-new installs.
 export function getExercises(): Exercise[] {
-  return get<Exercise[]>(KEYS.exercises, []);
+  const stored = get<Exercise[]>(KEYS.exercises, []);
+  const storedIds = new Set(stored.map((e) => e.id));
+  const missing = builtInExercises.filter((e) => !storedIds.has(e.id));
+  if (missing.length === 0) return stored;
+  const merged = stored.length > 0 ? [...stored, ...missing] : builtInExercises;
+  set(KEYS.exercises, merged);
+  return merged;
 }
 export function saveExercises(exercises: Exercise[]): void {
   set(KEYS.exercises, exercises);
