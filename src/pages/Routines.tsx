@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Plus, Trash2, Play, Edit3, X, Save, Dumbbell, ChevronDown, ChevronUp, FolderPlus, Sparkles, GripVertical, Link2, Unlink } from 'lucide-react';
+import { Plus, Play, Edit3, X, Save, Dumbbell, ChevronDown, ChevronUp, FolderPlus, Sparkles, GripVertical, Link2, Unlink } from 'lucide-react';
 import PageWrapper from '../components/PageWrapper';
+import ConfirmDeleteButton from '../components/ConfirmDeleteButton';
 import ExerciseSVG from '../components/ExerciseSVG';
 import RoutineWizard from '../components/RoutineWizard';
 import type { GeneratedRoutine } from '../utils/routineGenerator';
@@ -197,7 +198,7 @@ function RoutineCard({ routine, onStart, onEdit, onDelete }: {
             <Play size={12} /> Start
           </button>
           <button onClick={onEdit} title="Edit routine" className="p-1.5 text-[#888888] hover:text-[#D4FF00] transition-colors"><Edit3 size={14} /></button>
-          <button onClick={onDelete} className="p-1.5 text-[#888888] hover:text-[#ff4444] transition-colors"><Trash2 size={14} /></button>
+          <ConfirmDeleteButton onConfirm={onDelete} title="Delete routine" className="p-1.5 text-[#888888] hover:text-[#ff4444] transition-colors" />
         </div>
       </div>
       <div className="flex flex-wrap gap-2">
@@ -221,14 +222,12 @@ export default function Routines() {
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
   // Group form
   const [showGroupForm, setShowGroupForm] = useState(false);
   const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
   const [groupName, setGroupName] = useState('');
   const [groupColor, setGroupColor] = useState(GROUP_COLORS[0]);
-  const [deleteGroupConfirm, setDeleteGroupConfirm] = useState<string | null>(null);
 
   // Routine form state
   const [routineName, setRoutineName] = useState('');
@@ -398,7 +397,6 @@ export default function Routines() {
     saveRoutines(updatedRoutines);
     setGroups(updatedGroups);
     setRoutines(updatedRoutines);
-    setDeleteGroupConfirm(null);
   }
 
   // ── Routine CRUD ────────────────────────────────────────────────────────────
@@ -441,7 +439,6 @@ export default function Routines() {
     const updated = routines.filter((r) => r.id !== id);
     saveRoutines(updated);
     setRoutines(updated);
-    setDeleteConfirm(null);
   }
 
   function handleWizardCreate(planName: string, generated: GeneratedRoutine[]) {
@@ -615,7 +612,7 @@ export default function Routines() {
                           <span className="flex-1 min-w-0 text-sm font-bold text-[#ffffff] truncate">{re.exerciseName}</span>
                           <NumericInput value={re.targetSets} min={1} max={20} onChange={(n) => setRoutineExercises((prev) => prev.map((e, i) => i === idx ? { ...e, targetSets: n } : e))} className="w-9 shrink-0 bg-[#1f1f1f] border border-[#2a2a2a] rounded-[2px] px-1 py-1 text-[#ffffff] text-sm text-center focus:outline-none focus:border-[#D4FF00]" />
                           <NumericInput value={re.targetReps} min={1} max={999} onChange={(n) => setRoutineExercises((prev) => prev.map((e, i) => i === idx ? { ...e, targetReps: n } : e))} className="w-9 shrink-0 bg-[#1f1f1f] border border-[#2a2a2a] rounded-[2px] px-1 py-1 text-[#ffffff] text-sm text-center focus:outline-none focus:border-[#D4FF00]" />
-                          <button onClick={() => setRoutineExercises((prev) => prev.filter((_, i) => i !== idx))} className="text-[#888888] hover:text-[#ff4444] transition-colors p-1 shrink-0"><Trash2 size={14} /></button>
+                          <ConfirmDeleteButton onConfirm={() => setRoutineExercises((prev) => prev.filter((_, i) => i !== idx))} title="Remove exercise" compact className="text-[#888888] hover:text-[#ff4444] transition-colors p-1 shrink-0" />
                         </div>
                         {nextRe && (
                           <div className="flex justify-center -my-0.5 relative z-10">
@@ -677,7 +674,7 @@ export default function Routines() {
                 </button>
                 <div className="flex items-center gap-1 ml-3">
                   <button onClick={() => openEditGroup(group)} className="p-1.5 text-[#888888] hover:text-[#D4FF00] transition-colors"><Edit3 size={13} /></button>
-                  <button onClick={() => setDeleteGroupConfirm(group.id)} className="p-1.5 text-[#888888] hover:text-[#ff4444] transition-colors"><Trash2 size={13} /></button>
+                  <ConfirmDeleteButton onConfirm={() => handleDeleteGroup(group.id)} title="Delete group (routines become ungrouped)" iconSize={13} className="p-1.5 text-[#888888] hover:text-[#ff4444] transition-colors" />
                 </div>
               </div>
               {/* Group routines */}
@@ -687,7 +684,7 @@ export default function Routines() {
                     <p className="text-xs text-[#555555] uppercase tracking-wider text-center py-4">No routines in this group yet.</p>
                   ) : (
                     groupRoutines.map((routine) => (
-                      <RoutineCard key={routine.id} routine={routine} onStart={() => startRoutine(routine)} onEdit={() => openEdit(routine)} onDelete={() => setDeleteConfirm(routine.id)} />
+                      <RoutineCard key={routine.id} routine={routine} onStart={() => startRoutine(routine)} onEdit={() => openEdit(routine)} onDelete={() => handleDelete(routine.id)} />
                     ))
                   )}
                 </div>
@@ -703,7 +700,7 @@ export default function Routines() {
               <p className="text-xs font-bold uppercase tracking-wider text-[#555555]">Ungrouped</p>
             )}
             {ungrouped.map((routine) => (
-              <RoutineCard key={routine.id} routine={routine} onStart={() => startRoutine(routine)} onEdit={() => openEdit(routine)} onDelete={() => setDeleteConfirm(routine.id)} />
+              <RoutineCard key={routine.id} routine={routine} onStart={() => startRoutine(routine)} onEdit={() => openEdit(routine)} onDelete={() => handleDelete(routine.id)} />
             ))}
           </div>
         )}
@@ -733,34 +730,6 @@ export default function Routines() {
                   <Save size={14} /> {editingGroupId ? 'Update' : 'Create'}
                 </button>
                 <button onClick={() => setShowGroupForm(false)} className="px-5 py-2.5 rounded-[2px] font-bold uppercase tracking-wider text-sm text-[#888888] border border-[#2a2a2a] hover:text-[#ffffff]">Cancel</button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Delete routine confirm */}
-        {deleteConfirm && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
-            <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-[2px] p-6 max-w-sm w-full mx-4 space-y-4">
-              <h3 className="text-base font-bold uppercase tracking-wider text-[#ffffff]">Delete Routine?</h3>
-              <p className="text-sm text-[#888888]">Are you sure? This cannot be undone.</p>
-              <div className="flex items-center gap-3 pt-1">
-                <button onClick={() => handleDelete(deleteConfirm)} className="flex items-center gap-2 bg-[#ff4444] text-[#ffffff] px-4 py-2 rounded-[2px] font-bold uppercase tracking-wider text-sm"><Trash2 size={14} /> Delete</button>
-                <button onClick={() => setDeleteConfirm(null)} className="px-4 py-2 rounded-[2px] font-bold uppercase tracking-wider text-sm text-[#888888] border border-[#2a2a2a] hover:text-[#ffffff]">Cancel</button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Delete group confirm */}
-        {deleteGroupConfirm && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
-            <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-[2px] p-6 max-w-sm w-full mx-4 space-y-4">
-              <h3 className="text-base font-bold uppercase tracking-wider text-[#ffffff]">Delete Group?</h3>
-              <p className="text-sm text-[#888888]">The group will be deleted. Routines inside it will become ungrouped.</p>
-              <div className="flex items-center gap-3 pt-1">
-                <button onClick={() => handleDeleteGroup(deleteGroupConfirm)} className="flex items-center gap-2 bg-[#ff4444] text-[#ffffff] px-4 py-2 rounded-[2px] font-bold uppercase tracking-wider text-sm"><Trash2 size={14} /> Delete</button>
-                <button onClick={() => setDeleteGroupConfirm(null)} className="px-4 py-2 rounded-[2px] font-bold uppercase tracking-wider text-sm text-[#888888] border border-[#2a2a2a] hover:text-[#ffffff]">Cancel</button>
               </div>
             </div>
           </div>
