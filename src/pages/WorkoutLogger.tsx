@@ -63,6 +63,28 @@ function checkPB(
 
 const MUSCLE_GROUPS = ['All', 'Chest', 'Back', 'Shoulders', 'Legs', 'Arms', 'Core', 'Full Body'] as const;
 
+// ── Weight input ──────────────────────────────────────────────────────────────
+// Keeps its own text while typing so a trailing "." (mid-decimal, e.g. "12.")
+// isn't immediately collapsed back to "12" by the numeric value it's bound to.
+
+function WeightInput({ weight, bodyweight, onChange, className }: {
+  weight: number; bodyweight: boolean; onChange: (raw: string) => void; className?: string;
+}) {
+  const display = bodyweight ? 'BW' : (weight > 0 ? String(weight) : '');
+  const [raw, setRaw] = useState(display);
+  useEffect(() => { setRaw(display); }, [display]);
+  return (
+    <input
+      type="text"
+      inputMode="decimal"
+      value={raw}
+      onChange={(e) => { setRaw(e.target.value); onChange(e.target.value); }}
+      placeholder="0"
+      className={className}
+    />
+  );
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function WorkoutLogger() {
@@ -870,12 +892,10 @@ export default function WorkoutLogger() {
                         <td className="px-4 py-2 text-[#888888] font-mono">{setIndex + 1}</td>
                         <td className="px-4 py-2">
                           <div className="flex items-center gap-1">
-                            <input
-                              type="text"
-                              inputMode="decimal"
-                              value={set.bodyweight ? 'BW' : (set.weight > 0 ? String(set.weight) : '')}
-                              onChange={(e) => handleWeightChange(ex.id, set.id, e.target.value)}
-                              placeholder="0"
+                            <WeightInput
+                              weight={set.weight}
+                              bodyweight={!!set.bodyweight}
+                              onChange={(raw) => handleWeightChange(ex.id, set.id, raw)}
                               className="w-20 bg-[#1f1f1f] border border-[#2a2a2a] rounded-[2px] px-2 py-1 text-[#ffffff] text-sm text-center focus:outline-none focus:border-[#D4FF00] transition-colors"
                             />
                             {!set.bodyweight && <span className="text-[#888888] text-xs">{ex.weightUnit ?? weightUnit}</span>}
